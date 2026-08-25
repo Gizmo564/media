@@ -1,0 +1,2226 @@
+<meta charset="utf-8">
+<title>FYE Email Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#f5f3ee;
+    --surface:#ffffff;
+    --surface-2:#faf8f4;
+    --ink:#1c2230;
+    --muted:#63697a;
+    --line:#e1ddd1;
+    --line-strong:#cbc5b4;
+    --accent:#12315f;
+    --accent-ink:#ffffff;
+    --accent-soft:#e8edf6;
+    --good:#1f7a4d;
+    --good-soft:#e5f3ec;
+    --danger:#a03f34;
+    --danger-soft:#f8e9e6;
+    --shadow: 0 1px 2px rgba(28,34,48,.06), 0 6px 20px rgba(28,34,48,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171d;
+      --surface:#1b1f27;
+      --surface-2:#20242c;
+      --ink:#eef0f3;
+      --muted:#9aa3b2;
+      --line:#2b3038;
+      --line-strong:#3a404b;
+      --accent:#7fa8e0;
+      --accent-ink:#0d1622;
+      --accent-soft:#20304a;
+      --good:#5cc490;
+      --good-soft:#173226;
+      --danger:#e28579;
+      --danger-soft:#3a2320;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14171d;
+    --surface:#1b1f27;
+    --surface-2:#20242c;
+    --ink:#eef0f3;
+    --muted:#9aa3b2;
+    --line:#2b3038;
+    --line-strong:#3a404b;
+    --accent:#7fa8e0;
+    --accent-ink:#0d1622;
+    --accent-soft:#20304a;
+    --good:#5cc490;
+    --good-soft:#173226;
+    --danger:#e28579;
+    --danger-soft:#3a2320;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Source Sans 3', 'Segoe UI', Arial, sans-serif;
+    font-size:14.5px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Libre Franklin', 'Segoe UI', Arial, sans-serif;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    text-wrap:balance;
+    margin:0;
+  }
+  code, .mono{font-family:'IBM Plex Mono', ui-monospace, Consolas, monospace;}
+
+  a{color:inherit;}
+
+  .app{
+    display:grid;
+    grid-template-columns:min(480px, 42vw) 1fr;
+    height:100vh;
+    min-height:600px;
+  }
+  @media (max-width: 900px){
+    .app{grid-template-columns:1fr; height:auto;}
+  }
+
+  /* ---- LEFT: FORM PANE ---- */
+  .form-pane{
+    background:var(--surface);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+  .brandbar{
+    padding:18px 22px 16px;
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .brandbar .eyebrow{
+    font-size:11px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .brandbar h1{font-size:20px;}
+  .brandbar p{color:var(--muted); margin:4px 0 0; font-size:13px;}
+
+  .form-scroll{
+    flex:1;
+    overflow-y:auto;
+    padding:6px 22px 40px;
+  }
+
+  .section{
+    border-bottom:1px solid var(--line);
+    padding:16px 0;
+  }
+  .section:last-child{border-bottom:none;}
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    cursor:pointer;
+    user-select:none;
+    padding:2px 0;
+  }
+  .section-head h2{
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .gh-status-dot{
+    display:inline-block;
+    width:7px; height:7px;
+    border-radius:50%;
+    background:#2e9e5b;
+    flex-shrink:0;
+  }
+  .section-head .chev{
+    color:var(--muted);
+    transition:transform .15s ease;
+    flex-shrink:0;
+    font-size:12px;
+  }
+  .section.collapsed .chev{transform:rotate(-90deg);}
+  .section.collapsed .section-body{display:none;}
+  .section-sub{color:var(--muted); font-size:12.5px; margin-top:2px;}
+
+  .section-body{padding-top:14px; display:flex; flex-direction:column; gap:12px;}
+
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field-checkbox{flex-direction:row; align-items:flex-start; gap:8px; cursor:pointer; user-select:none;}
+  .field-checkbox input{margin-top:3px; width:auto;}
+  .field label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .field .hint{font-size:11.5px; color:var(--muted); font-weight:400;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+  .image-field-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .image-field-preview{margin-top:2px;}
+  .image-field-preview img{max-width:100%; max-height:90px; border-radius:6px; border:1px solid var(--line-strong); display:block; background:repeating-conic-gradient(#e9e4d6 0% 25%, #f7f1e4 0% 50%) 50% / 14px 14px;}
+  .image-field-size{font-size:11.5px; color:var(--muted);}
+  .image-field-size-warn{color:#9a5a12;}
+
+  input[type=text], input[type=url], input[type=number], textarea, select{
+    width:100%;
+    font:inherit;
+    font-size:13.5px;
+    color:var(--ink);
+    background:var(--surface-2);
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    padding:8px 10px;
+    outline:none;
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  textarea{resize:vertical; min-height:56px; font-family:inherit;}
+  input:focus, textarea:focus, select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  input[type=color]{
+    -webkit-appearance:none;
+    appearance:none;
+    width:38px; height:32px;
+    border:1px solid var(--line-strong);
+    border-radius:7px;
+    padding:2px;
+    background:var(--surface-2);
+    cursor:pointer;
+  }
+  .color-field{display:flex; align-items:center; gap:8px;}
+  .color-field .swatch-text{font-size:12px; color:var(--muted);}
+
+  .block-card{
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:12px;
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .block-card.is-empty{border-style:dashed;}
+  .block-card.dragging{opacity:.4;}
+  .block-card.drag-over-top{box-shadow:inset 0 3px 0 0 var(--accent);}
+  .block-card.drag-over-bottom{box-shadow:inset 0 -3px 0 0 var(--accent);}
+  .block-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    background:var(--surface-2);
+    cursor:pointer;
+    user-select:none;
+  }
+  .drag-handle{
+    flex-shrink:0;
+    cursor:grab;
+    color:var(--muted);
+    font-size:14px;
+    padding:2px 2px;
+    line-height:1;
+    touch-action:none;
+  }
+  .drag-handle:active{cursor:grabbing;}
+  .block-head .chev{color:var(--muted); font-size:12px; flex-shrink:0; transition:transform .15s ease;}
+  .block-card.collapsed .chev{transform:rotate(-90deg);}
+  .block-card.collapsed .block-body{display:none;}
+  .block-type-badge{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border-radius:999px;
+    padding:2px 8px;
+    flex-shrink:0;
+    white-space:nowrap;
+  }
+  .block-title{
+    flex:1;
+    min-width:0;
+    font-size:13px;
+    font-weight:600;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:var(--ink);
+  }
+  .block-empty-flag{
+    font-size:11px;
+    color:var(--muted);
+    font-weight:400;
+  }
+  .block-controls{
+    display:flex;
+    gap:2px;
+    flex-shrink:0;
+  }
+  .block-controls button{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:13px;
+    padding:4px 6px;
+    border-radius:6px;
+    line-height:1;
+  }
+  .block-controls button:hover{background:var(--accent-soft); color:var(--accent);}
+  .block-controls button.danger:hover{background:var(--danger-soft); color:var(--danger);}
+  .block-body{padding:14px 14px 16px; display:flex; flex-direction:column; gap:12px;}
+
+  .add-section-bar{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    padding:14px 0 6px;
+  }
+  .add-section-bar select{flex:1;}
+
+  .align-toggle{display:flex; border:1px solid var(--line-strong); border-radius:8px; overflow:hidden; width:fit-content;}
+  .align-toggle button{
+    font:inherit; font-size:12px; font-weight:600; padding:5px 11px;
+    border:none; background:var(--surface-2); color:var(--muted); cursor:pointer;
+  }
+  .align-toggle button.active{background:var(--accent); color:var(--accent-ink);}
+
+  .field-note{
+    font-size:11.5px;
+    color:var(--muted);
+    background:var(--accent-soft);
+    border-radius:7px;
+    padding:6px 9px;
+    line-height:1.4;
+  }
+
+  .repeat-list{display:flex; flex-direction:column; gap:10px;}
+  .repeat-card{
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    border-radius:10px;
+    padding:10px 12px;
+    position:relative;
+  }
+  .repeat-card .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .card-tag{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .icon-btn{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:13px;
+    padding:3px 6px;
+    border-radius:6px;
+    line-height:1;
+  }
+  .icon-btn:hover{background:var(--danger-soft); color:var(--danger);}
+
+  .btn{
+    font:inherit;
+    font-size:13px;
+    font-weight:600;
+    border-radius:8px;
+    padding:8px 13px;
+    border:1px solid var(--line-strong);
+    background:var(--surface-2);
+    color:var(--ink);
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:background .12s ease, transform .05s ease;
+  }
+  .btn:hover{background:var(--accent-soft); border-color:var(--accent);}
+  .btn:active{transform:translateY(1px);}
+  .btn-add{
+    border-style:dashed;
+    justify-content:center;
+    color:var(--accent);
+    font-weight:700;
+  }
+  .btn-primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{filter:brightness(1.07); background:var(--accent);}
+  .btn-sm{padding:6px 10px; font-size:12.5px;}
+
+  .form-footer{
+    padding:14px 22px;
+    border-top:1px solid var(--line);
+    background:var(--surface);
+    flex-shrink:0;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  /* ---- RIGHT: PREVIEW PANE ---- */
+  .preview-pane{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    background:var(--bg);
+  }
+  .preview-topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 22px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+    flex-wrap:wrap;
+  }
+  .viewport-toggle{
+    display:inline-flex;
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .viewport-toggle button{
+    font:inherit; font-size:12.5px; font-weight:600;
+    padding:7px 13px;
+    border:none;
+    background:var(--surface-2);
+    color:var(--muted);
+    cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .viewport-toggle button.active{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .actions{display:flex; gap:8px; flex-wrap:wrap;}
+
+  .preview-note{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:10px 22px;
+    background:var(--accent-soft);
+    color:var(--ink);
+    font-size:12.5px;
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .preview-note.hidden{display:none;}
+  .preview-note button{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:13px;
+    flex-shrink:0;
+    padding:2px 6px;
+    border-radius:6px;
+  }
+  .preview-note button:hover{background:rgba(0,0,0,.08);}
+
+  .preview-scroll{
+    flex:1;
+    overflow:auto;
+    padding:28px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .preview-frame-wrap{
+    background:#fff;
+    box-shadow:var(--shadow);
+    border-radius:4px;
+    overflow:hidden;
+    transition:width .18s ease;
+    width:760px;
+    max-width:100%;
+  }
+  .preview-frame-wrap.mobile{width:390px;}
+  iframe{
+    display:block;
+    width:100%;
+    height:2600px;
+    border:none;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:22px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:var(--bg);
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    box-shadow:var(--shadow);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  details.howto{
+    border-top:1px solid var(--line);
+    background:var(--surface);
+    padding:14px 22px 20px;
+    flex-shrink:0;
+  }
+  details.howto summary{
+    cursor:pointer;
+    font-weight:700;
+    font-size:13.5px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    list-style:none;
+  }
+  details.howto summary::-webkit-details-marker{display:none;}
+  details.howto summary:before{
+    content:"▸";
+    color:var(--accent);
+    transition:transform .15s ease;
+  }
+  details.howto[open] summary:before{transform:rotate(90deg);}
+  .howto-body{
+    padding-top:12px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:16px;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .howto-body ol{margin:6px 0 0; padding-left:18px;}
+  .howto-body li{margin-bottom:4px;}
+  .howto-card h3{font-size:13px; margin-bottom:2px;}
+  .howto-card .tag{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border-radius:999px;
+    margin-bottom:6px;
+  }
+  .tag.best{background:var(--good-soft); color:var(--good);}
+  .tag.ok{background:var(--accent-soft); color:var(--accent);}
+
+  .html-source{
+    border-top:1px solid var(--line);
+    background:var(--surface);
+  }
+  .html-source summary{
+    cursor:pointer;
+    padding:14px 22px;
+    font-weight:700;
+    font-size:13.5px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .html-source pre{
+    margin:0;
+    max-height:280px;
+    overflow:auto;
+    background:var(--surface-2);
+    padding:16px 22px;
+    font-size:11.5px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    word-break:break-all;
+    border-top:1px solid var(--line);
+  }
+
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:6px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+
+<div class="app">
+  <div class="form-pane">
+    <div class="brandbar">
+      <div class="eyebrow">Email builder</div>
+      <h1>FYE Newsletter</h1>
+      <p>Every section below is optional — leave a field blank and it's simply left out. Use the ⧉ ↑ ↓ ✕ controls on each section to duplicate, reorder, or remove it, and add new ones at the bottom.</p>
+    </div>
+    <div class="form-scroll" id="formRoot"></div>
+    <div class="form-footer">Your text auto-saves in this browser tab as you go. Nothing is uploaded anywhere. To keep working on this later or hand it to someone else, use <strong>Export template</strong> to save a .json file with everything you've entered, and <strong>Import template</strong> to load it back in — this is separate from the final <strong>Download .html</strong>, which is for sending the email itself and can't be re-edited here.</div>
+  </div>
+
+  <div class="preview-pane">
+    <div class="preview-topbar">
+      <div class="viewport-toggle">
+        <button id="vpDesktop" class="active" type="button">🖥 Desktop</button>
+        <button id="vpMobile" type="button">📱 Mobile</button>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btnReset" type="button">Reset to sample</button>
+        <button class="btn" id="btnExportTemplate" type="button" title="Save all your current fields as a .json file you can re-upload later to keep editing">Export template</button>
+        <button class="btn" id="btnImportTemplate" type="button" title="Load a previously-exported .json template file">Import template</button>
+        <input type="file" id="fileImportTemplate" accept=".json,application/json" style="display:none;">
+        <button class="btn" id="btnCopy" type="button">Copy HTML</button>
+        <button class="btn btn-primary" id="btnDownload" type="button">Download .html</button>
+      </div>
+    </div>
+    <div class="preview-note hidden" id="previewNote">
+      <span>🖼️ Your images couldn't load in this preview box — grey placeholders stand in for them here. This is a restriction on this pane specifically; they'll display normally once the file is downloaded, pasted into Outlook, or opened by a recipient.</span>
+      <button type="button" id="dismissNote" title="Dismiss">✕</button>
+    </div>
+    <div class="preview-scroll">
+      <div class="preview-frame-wrap" id="frameWrap">
+        <iframe id="previewFrame" title="Email preview"></iframe>
+      </div>
+    </div>
+
+    <details class="howto">
+      <summary>How to get this into Outlook without it breaking</summary>
+      <div class="howto-body">
+        <div class="howto-card">
+          <span class="tag best">Best — works everywhere</span>
+          <h3>Send it as a real HTML email</h3>
+          <p>If your school/org sends newsletters through a mail platform (Mailchimp, Emma, Marketing Cloud, etc.), upload the downloaded <code class="mono">.html</code> file there directly. This is the only path that guarantees the colors, background art, and mobile layout all survive, because the file is delivered as true HTML instead of being retyped by Outlook's editor.</p>
+        </div>
+        <div class="howto-card">
+          <span class="tag ok">Good — sending straight from Outlook</span>
+          <h3>Paste with "Keep Source Formatting"</h3>
+          <ol>
+            <li>Click <strong>Download .html</strong>, then open that file in Chrome or Edge.</li>
+            <li>Click anywhere in the page and press <code class="mono">Ctrl+A</code> then <code class="mono">Ctrl+C</code>.</li>
+            <li>In Outlook, start a New Email, click inside the body, and press <code class="mono">Ctrl+V</code>.</li>
+            <li>A small clipboard icon appears — click it and choose <strong>Keep Source Formatting</strong> (this is the step people usually miss, and it's why colors and backgrounds normally vanish).</li>
+          </ol>
+          <p>This file inlines every color as both CSS and an HTML <code class="mono">bgcolor</code> attribute, and gives textured backgrounds a Word-safe fallback — so this route holds up far better than a template exported without those fixes.</p>
+        </div>
+        <div class="howto-card">
+          <span class="tag ok">About images from your computer</span>
+          <h3>Embedded files vs. hosted links</h3>
+          <p>Any image field has a <strong>Use a file from my computer</strong> button — pick a photo/logo and it travels inside the email itself as embedded data, no separate hosting needed. It's automatically resized so it doesn't bloat the file. This works well in Gmail, Apple Mail, and on phones, but <strong>classic Outlook desktop (Windows) often refuses to display embedded images</strong> — only a genuinely hosted link is guaranteed to show up there.</p>
+          <p>If this newsletter is going to Outlook desktop users, it's safer to host each image somewhere free and paste the link instead: <strong>imgbb.com</strong>, <strong>postimages.org</strong>, and <strong>Cloudinary's</strong> free tier all let you drag in a file and get a direct link back with no account required for the first two. Your school's own web/CMS storage (if you have any) works too.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="html-source">
+      <summary>View raw HTML <span style="font-weight:400; color:var(--muted); font-size:12px;">(for pasting into a CMS or ESP)</span></summary>
+      <pre class="mono" id="htmlSource"></pre>
+    </details>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   SHARED UTILITIES
+   ============================================================ */
+let uidCounter = 0;
+function uid(){ return 'b' + (++uidCounter) + '_' + Math.random().toString(36).slice(2,8); }
+
+function shade(hex, percent){
+  // darken (negative percent) or lighten (positive percent) a #rrggbb color
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if(!m) return hex;
+  const clamp = v => Math.max(0, Math.min(255, v));
+  const adjust = c => clamp(Math.round(parseInt(c,16) + 255*(percent/100))).toString(16).padStart(2,'0');
+  return '#' + adjust(m[1]) + adjust(m[2]) + adjust(m[3]);
+}
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function nonEmpty(s){ return !!(s && String(s).trim()); }
+function textStyle(b){
+  // generic per-block text-wrapping override — appended AFTER a text
+  // element's own inline style so it wins when set, and is a harmless
+  // no-op (graceful degradation) when left at the default.
+  let s = '';
+  if(b && b.textWrap === 'nowrap') s += 'white-space:nowrap;';
+  else if(b && b.textWrap === 'break') s += 'word-break:break-word;overflow-wrap:break-word;white-space:normal;';
+  return s;
+}
+function alignOf(b, fallback){
+  // generic per-block text-alignment override with a per-element fallback
+  // (many sections have their own sensible default alignment — centered
+  // headings, alternating icon/text pairs, etc.) — used for BOTH the
+  // legacy align="" attribute (which some Outlook/Word rendering still
+  // trusts more than CSS) and the text-align CSS property.
+  return (b && nonEmpty(b.textAlign)) ? b.textAlign : fallback;
+}
+function paragraphs(s, style){
+  const parts = String(s==null?'':s).split(/\n+/).map(p=>p.trim()).filter(Boolean);
+  if(!parts.length) return '';
+  return parts.map(p=>`<p style="margin:0 0 10px;${style||''}">${esc(p)}</p>`).join('');
+}
+
+function getPath(obj, path){
+  return path.split('.').reduce((o,k)=> (o==null? o : o[k]), obj);
+}
+function setPath(obj, path, value){
+  const keys = path.split('.');
+  let cur = obj;
+  for(let i=0;i<keys.length-1;i++){ cur = cur[keys[i]]; }
+  cur[keys[keys.length-1]] = value;
+}
+
+/* ============================================================
+   OUTLOOK-SAFE EMAIL PRIMITIVES
+   - every background-color is set as BOTH inline CSS and a
+     bgcolor="" attribute (classic Outlook's Word engine trusts
+     bgcolor far more than CSS on <table>/<td>)
+   - textured background images get a VML fallback for Outlook
+     desktop, wrapped in mso conditional comments
+   - table-based layout with width/role/cellpadding attributes
+   - no RGE / Beefree branding anywhere in the output
+   ============================================================ */
+const FONT_STACK = "'Montserrat','Trebuchet MS','Lucida Grande','Lucida Sans Unicode','Lucida Sans',Tahoma,sans-serif";
+
+function rowOpen(bg){
+  return `<table class="row" align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="${bg}" style="mso-table-lspace:0pt;mso-table-rspace:0pt;background-color:${bg};"><tr><td>`;
+}
+const rowClose = `</td></tr></table>`;
+
+function contentOpen(bg, extraStyle, extraClass, pad){
+  extraStyle = extraStyle || '';
+  const tdStyle = pad ? ` style="padding:${pad};"` : '';
+  return `<table class="row-content${extraClass?(' '+extraClass):''}" align="center" width="700" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="${bg}" style="mso-table-lspace:0pt;mso-table-rspace:0pt;width:700px;max-width:700px;margin:0 auto;background-color:${bg};${extraStyle}"><tr><td${tdStyle}>`;
+}
+const contentClose = `</td></tr></table>`;
+
+function bulletproofBg(imgUrl, bg, approxHeight, innerHtml){
+  if(!nonEmpty(imgUrl)){
+    // no background image supplied — just a plain, still-legible solid-color block
+    return `<div style="background-color:${bg};">${innerHtml}</div>`;
+  }
+  return `
+    <!--[if mso]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="mso-width-percent:1000;width:700px;height:${approxHeight}px;">
+    <v:fill type="tile" src="${esc(imgUrl)}" color="${bg}" />
+    <v:textbox inset="0,0,0,0">
+    <![endif]-->
+    <div style="background-color:${bg};background-image:url('${esc(imgUrl)}');background-position:center center;background-repeat:no-repeat;background-size:cover;">
+      ${innerHtml}
+    </div>
+    <!--[if mso]>
+    </v:textbox>
+    </v:rect>
+    <![endif]-->
+  `;
+}
+
+const PREVIEW_PLACEHOLDER_SCRIPT = `
+<script>
+(function(){
+  var anyFailed = false;
+  function reportOnce(){
+    if(anyFailed) return;
+    anyFailed = true;
+    try{ window.parent.postMessage({ source:'fye-builder-preview', imagesBlocked:true }, '*'); }catch(e){}
+  }
+  function placeholder(img){
+    var w = parseInt(img.getAttribute('width'),10) || img.width || 120;
+    var alt = img.getAttribute('alt') || '';
+    var div = document.createElement('div');
+    var h = Math.max(36, Math.round(w * 0.42));
+    div.setAttribute('style','width:'+w+'px;max-width:100%;height:'+h+'px;display:flex;align-items:center;justify-content:center;gap:6px;background:#d8d8d8;border:1px dashed #8a8a8a;border-radius:8px;color:#333;font:12px/1.3 Arial,sans-serif;text-align:center;padding:6px 10px;box-sizing:border-box;');
+    div.innerHTML = '<span>&#128247;&nbsp;' + (alt ? alt.replace(/</g,'&lt;') : 'image') + '</span>';
+    if(img.parentNode) img.parentNode.replaceChild(div, img);
+    reportOnce();
+  }
+  function check(img){
+    if(img.complete && img.naturalWidth === 0){ placeholder(img); }
+  }
+  document.querySelectorAll('img').forEach(function(img){
+    img.addEventListener('error', function(){ placeholder(img); }, {once:true});
+    check(img);
+    setTimeout(function(){ check(img); }, 700);
+  });
+})();
+<\/script>`;
+
+/* ============================================================
+   BLOCK REGISTRY — every section of the email is one of these
+   types. Each defines: a blank factory, an emptiness check (for
+   graceful degradation — omit rather than render broken markup),
+   a form-fields renderer, and an email-HTML renderer.
+   ============================================================ */
+const TPL = {
+  bullet: () => '',
+  line: () => '',
+  pair: () => ({ iconUrl:'', heading:'', body:'', align:'left' }),
+  card: () => ({ title:'', line1:'', line2:'' }),
+  action: () => ({ text:'', url:'' })
+};
+
+function repeatList(blockIndex, fieldName, items, tplKey, renderItem, addLabel){
+  return `<div class="repeat-list">
+    ${items.map((item,i)=>`
+      <div class="repeat-card">
+        <div class="card-top">
+          <span class="card-tag">${fieldName} ${i+1}</span>
+          <button class="icon-btn" type="button" data-action="arr-remove" data-block="${blockIndex}" data-field="${fieldName}" data-index="${i}" title="Remove">✕ Remove</button>
+        </div>
+        ${renderItem(item, i)}
+      </div>`).join('')}
+  </div>
+  <button class="btn btn-add btn-sm" type="button" data-action="arr-add" data-block="${blockIndex}" data-field="${fieldName}" data-tpl="${tplKey}">${addLabel}</button>`;
+}
+
+function inputField(label, bindPath, value, opts){
+  opts = opts || {};
+  const hint = opts.hint ? `<span class="hint"> — ${opts.hint}</span>` : '';
+  if(opts.textarea){
+    return `<div class="field"><label>${label}${hint}</label><textarea data-bind="${bindPath}" rows="${opts.rows||3}">${esc(value)}</textarea></div>`;
+  }
+  if(opts.select){
+    return `<div class="field"><label>${label}${hint}</label>
+      <select data-bind="${bindPath}">
+        ${opts.select.map(o=>`<option value="${esc(o.value)}"${o.value===value?' selected':''}>${esc(o.label)}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+  if(opts.number){
+    return `<div class="field"><label>${label}${hint}</label><input type="number" min="${opts.min!=null?opts.min:0}" max="${opts.max!=null?opts.max:400}" step="${opts.step||4}" data-bind="${bindPath}" data-numeric="1" value="${value==null?0:value}"></div>`;
+  }
+  if(opts.checkbox){
+    return `<label class="field field-checkbox"><input type="checkbox" data-bind="${bindPath}" data-bool="1" ${value?'checked':''}> <span>${label}${hint}</span></label>`;
+  }
+  return `<div class="field"><label>${label}${hint}</label><input type="text" data-bind="${bindPath}" value="${esc(value)}"></div>`;
+}
+
+function imageField(label, bindPath, value, opts){
+  opts = opts || {};
+  const hint = opts.hint ? `<span class="hint"> — ${opts.hint}</span>` : '';
+  const isEmbedded = typeof value === 'string' && value.slice(0,5) === 'data:';
+  const kb = isEmbedded ? Math.round(value.length * 0.75 / 1024) : null;
+  const sizeNote = kb!=null
+    ? `<div class="image-field-size${kb>150?' image-field-size-warn':''}">Embedded file, ~${kb} KB${kb>150?' — large embedded images can make an email slow to load or get clipped by some inboxes (Gmail cuts messages off around ~100 KB total). Consider a free hosted link instead for anything this size.':''}</div>`
+    : '';
+  const preview = nonEmpty(value) ? `<div class="image-field-preview"><img src="${esc(value)}" alt=""></div>` : '';
+  return `<div class="field image-field">
+    <label>${label}${hint}</label>
+    <input type="text" data-bind="${bindPath}" value="${isEmbedded ? '' : esc(value)}" placeholder="${isEmbedded ? 'Using an embedded local file below — type a URL here to replace it' : 'https://... (a hosted image link)'}">
+    <div class="image-field-row">
+      <button type="button" class="btn btn-sm" data-image-pick="${bindPath}">📁 Use a file from my computer</button>
+      <input type="file" accept="image/*" data-image-input="${bindPath}" style="display:none;">
+      <button type="button" class="btn btn-sm" data-github-pick="${bindPath}">☁️ Upload to GitHub</button>
+      <input type="file" accept="image/*" data-github-input="${bindPath}" style="display:none;">
+      ${isEmbedded ? `<button type="button" class="btn btn-sm" data-image-clear="${bindPath}">✕ Remove embedded file</button>` : ''}
+    </div>
+    ${preview}
+    ${sizeNote}
+  </div>`;
+}
+
+function alignToggle(bindPath, value){
+  return `<div class="field"><label>Alignment</label>
+    <div class="align-toggle">
+      <button type="button" data-align-set="${bindPath}" data-align-val="left" class="${value!=='right'?'active':''}">Left</button>
+      <button type="button" data-align-set="${bindPath}" data-align-val="right" class="${value==='right'?'active':''}">Right</button>
+    </div>
+  </div>`;
+}
+
+const BLOCKS = {
+
+  logo:{
+    label:'Header logo', badge:'Logo',
+    blank:()=>({id:uid(), type:'logo', collapsed:false, imageUrl:'', alt:''}),
+    title:b=> b.alt || 'Header logo',
+    isEmpty:b=> !nonEmpty(b.imageUrl),
+    fields:(b,i)=> imageField('Logo image URL', `blocks.${i}.imageUrl`, b.imageUrl, {hint:'paste a hosted link, or use a file from your computer below'})
+      + inputField('Alt text', `blocks.${i}.alt`, b.alt),
+    email:(b,C)=>{
+      if(!nonEmpty(b.imageUrl)) return '';
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(44+(b.padTop||0))}px ${C.sp(b.marginX||0)}px ${C.sp(36+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${alignOf(b,'center')}" style="padding:0 30px;">
+          <img src="${esc(b.imageUrl)}" width="380" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:380px;height:auto;border:0;">
+        </td></tr></table>
+      ` + contentClose + rowClose;
+    }
+  },
+
+  hero:{
+    label:'Hero banner', badge:'Hero',
+    blank:()=>({id:uid(), type:'hero', collapsed:false, bgImageUrl:'', lines:['']}),
+    title:b=> (b.lines.find(nonEmpty)) || 'Hero banner',
+    isEmpty:b=> !nonEmpty(b.bgImageUrl) && b.lines.every(l=>!nonEmpty(l)),
+    fields:(b,i)=> imageField('Background image URL', `blocks.${i}.bgImageUrl`, b.bgImageUrl, {hint:'optional — falls back to a solid navy panel'})
+      + `<div class="field"><label>Title lines</label>${repeatList(i,'lines',b.lines,'line',(item,j)=>`<input type="text" data-bind="blocks.${i}.lines.${j}" value="${esc(item)}">`,'+ Add line')}</div>`,
+    email:(b,C)=>{
+      const lines = b.lines.map((l,idx)=>({text:l, idx})).filter(x=>nonEmpty(x.text));
+      if(!lines.length && !nonEmpty(b.bgImageUrl)) return '';
+      const linesHtml = lines.map((x,pos)=>{
+        const big = pos===0;
+        const align = alignOf(b, x.idx % 2 === 1 ? 'right' : 'left');
+        return `<h1 style="margin:0;color:${C.CREAM};font-family:${FONT_STACK};font-size:${big?56:38}px;font-weight:600;line-height:1.2;text-align:${align};${pos>0?'padding-top:'+C.sp(big?48:32)+'px;':''}${textStyle(b)}">${esc(x.text)}</h1>`;
+      }).join('\n');
+      const inner = `<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td class="hero-pad" style="padding:${C.sp(66+(b.padTop||0))}px ${C.sp(64+(b.marginX||0))}px ${C.sp(56+(b.padBottom||0))}px;">${linesHtml || '&#8202;'}</td></tr></table>`;
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', 'hero-row') + bulletproofBg(b.bgImageUrl, C.NAVY, 380, inner) + contentClose + rowClose;
+    }
+  },
+
+  iconText:{
+    label:'Icon + text pairs', badge:'Icon/Text',
+    blank:()=>({id:uid(), type:'iconText', collapsed:false, pairs:[TPL.pair()]}),
+    title:b=>{ const p = b.pairs.find(p=>nonEmpty(p.heading)); return p ? p.heading : 'Icon + text pairs'; },
+    isEmpty:b=> b.pairs.every(p=>!nonEmpty(p.iconUrl)&&!nonEmpty(p.heading)&&!nonEmpty(p.body)),
+    fields:(b,i)=> `<div class="field"><label>Pairs</label>${repeatList(i,'pairs',b.pairs,'pair',(p,j)=>`
+        ${imageField('Icon image URL', `blocks.${i}.pairs.${j}.iconUrl`, p.iconUrl, {hint:'optional'})}
+        ${inputField('Heading', `blocks.${i}.pairs.${j}.heading`, p.heading)}
+        ${inputField('Body text', `blocks.${i}.pairs.${j}.body`, p.body, {textarea:true})}
+        ${alignToggle(`blocks.${i}.pairs.${j}.align`, p.align)}
+      `,'+ Add pair')}</div>`,
+    email:(b,C)=>{
+      const rows = b.pairs.filter(p=>nonEmpty(p.iconUrl)||nonEmpty(p.heading)||nonEmpty(p.body)).map(p=>{
+        const right = p.align === 'right';
+        const al = alignOf(b, right ? 'right' : 'left');
+        let html = '';
+        if(nonEmpty(p.iconUrl)) html += `<tr><td align="${al}" style="padding-bottom:${C.sp(14)}px;"><img src="${esc(p.iconUrl)}" width="72" alt="" style="display:block;width:72px;height:auto;border:0;"></td></tr>`;
+        if(nonEmpty(p.heading)) html += `<tr><td align="${al}" style="padding-bottom:${C.sp(12)}px;"><h4 style="margin:0;color:${C.ACCENT};font-family:${FONT_STACK};font-size:30px;font-weight:700;line-height:1.2;text-align:${al};${textStyle(b)}">${esc(p.heading)}</h4></td></tr>`;
+        if(nonEmpty(p.body)) html += `<tr><td align="${al}" style="padding-bottom:${C.sp(34)}px;"><div style="color:#282828;font-family:${FONT_STACK};font-size:18px;font-weight:400;line-height:1.45;text-align:${al};${textStyle(b)}">${paragraphs(p.body, `text-align:${al};${textStyle(b)}`)}</div></td></tr>`;
+        return html;
+      }).join(`<tr><td style="height:${C.sp(6)}px;line-height:${C.sp(6)}px;font-size:1px;">&#8202;</td></tr>`);
+      if(!rows) return '';
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(48+(b.padTop||0))}px ${C.sp(48+(b.marginX||0))}px ${C.sp(48+(b.padBottom||0))}px`) + `<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">${rows}</table>` + contentClose + rowClose;
+    }
+  },
+
+  highlightCard:{
+    label:'Highlight card', badge:'Highlight',
+    blank:()=>({id:uid(), type:'highlightCard', collapsed:false, iconUrl:'', heading:'', intro:'', bullets:[], closing:''}),
+    title:b=> b.heading || 'Highlight card',
+    isEmpty:b=> !nonEmpty(b.heading)&&!nonEmpty(b.intro)&&!nonEmpty(b.closing)&&!nonEmpty(b.iconUrl)&&b.bullets.every(x=>!nonEmpty(x)),
+    fields:(b,i)=> imageField('Icon image URL', `blocks.${i}.iconUrl`, b.iconUrl, {hint:'optional'})
+      + inputField('Heading', `blocks.${i}.heading`, b.heading)
+      + inputField('Intro line', `blocks.${i}.intro`, b.intro)
+      + `<div class="field"><label>Bullet points</label>${repeatList(i,'bullets',b.bullets,'bullet',(item,j)=>`<input type="text" data-bind="blocks.${i}.bullets.${j}" value="${esc(item)}">`,'+ Add bullet')}</div>`
+      + inputField('Closing line', `blocks.${i}.closing`, b.closing),
+    email:(b,C)=>{
+      const headAlign = alignOf(b,'left');
+      const headRow = (nonEmpty(b.heading)||nonEmpty(b.iconUrl)) ? `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr>
+          <td align="${headAlign}" valign="middle">${nonEmpty(b.heading)?`<h3 style="margin:0;color:${C.ACCENT};font-family:${FONT_STACK};font-size:34px;font-weight:700;line-height:1.2;text-align:${headAlign};${textStyle(b)}">${esc(b.heading)}</h3>`:''}</td>
+          ${nonEmpty(b.iconUrl)?`<td align="right" valign="middle" width="90"><img src="${esc(b.iconUrl)}" width="70" alt="" style="display:block;width:70px;height:auto;border:0;"></td>`:''}
+        </tr></table>` : '';
+      const bullets = b.bullets.filter(nonEmpty).map(x=>`<p style="margin:0 0 ${C.sp(11)}px;text-align:${alignOf(b,'left')};${textStyle(b)}">• ${esc(x)}</p>`).join('');
+      const cardBody = nonEmpty(b.intro)||bullets||nonEmpty(b.closing);
+      let out = '';
+      const mX = 46+(b.marginX||0);
+      if(headRow){
+        const topPad = 46+(b.padTop||0);
+        const botPad = cardBody ? 0 : (46+(b.padBottom||0));
+        out += rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(topPad)}px ${C.sp(mX)}px ${C.sp(botPad)}px`) + headRow + contentClose + rowClose;
+      }
+      if(cardBody){
+        const topPad = headRow ? 18 : (46+(b.padTop||0));
+        const botPad = (headRow?18:46)+(b.padBottom||0);
+        out += rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(topPad)}px ${C.sp(mX)}px ${C.sp(botPad)}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="${C.NAVY}" role="presentation" style="background-color:${C.NAVY};border-radius:24px;"><tr><td bgcolor="${C.NAVY}" style="background-color:${C.NAVY};border-radius:24px;padding:${C.sp(34)}px ${C.sp(38)}px ${C.sp(38)}px;">
+          ${nonEmpty(b.intro)?`<p style="margin:0 0 ${C.sp(16)}px;color:${C.CREAM};font-family:${FONT_STACK};font-size:21px;font-weight:700;line-height:1.3;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(b.intro)}</p>`:''}
+          ${bullets?`<div style="color:${C.CREAM};font-family:${FONT_STACK};font-size:18px;font-weight:500;line-height:1.4;">${bullets}</div>`:''}
+          ${nonEmpty(b.closing)?`<p style="margin:${C.sp(18)}px 0 0;color:${C.CREAM};font-family:${FONT_STACK};font-size:21px;font-weight:700;line-height:1.3;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(b.closing)}</p>`:''}
+        </td></tr></table>` + contentClose + rowClose;
+      }
+      return out;
+    }
+  },
+
+  cardList:{
+    label:'Card list (events, etc.)', badge:'Cards',
+    blank:()=>({id:uid(), type:'cardList', collapsed:false, heading:'', iconUrl:'', cards:[TPL.card()]}),
+    title:b=> b.heading || 'Card list',
+    isEmpty:b=> !nonEmpty(b.heading) && b.cards.every(c=>!nonEmpty(c.title)&&!nonEmpty(c.line1)&&!nonEmpty(c.line2)),
+    fields:(b,i)=> inputField('Section heading', `blocks.${i}.heading`, b.heading)
+      + imageField('Icon shown on every card', `blocks.${i}.iconUrl`, b.iconUrl, {hint:'optional'})
+      + `<div class="field"><label>Cards</label>${repeatList(i,'cards',b.cards,'card',(c,j)=>`
+          ${inputField('Title', `blocks.${i}.cards.${j}.title`, c.title)}
+          ${inputField('Line 1', `blocks.${i}.cards.${j}.line1`, c.line1)}
+          ${inputField('Line 2', `blocks.${i}.cards.${j}.line2`, c.line2)}
+        `,'+ Add card')}</div>`,
+    email:(b,C)=>{
+      let out = '';
+      const mX = 40+(b.marginX||0);
+      const hasHeading = nonEmpty(b.heading);
+      const cards = b.cards.filter(c=>nonEmpty(c.title)||nonEmpty(c.line1)||nonEmpty(c.line2));
+      if(hasHeading){
+        const botExtra = cards.length ? 0 : (b.padBottom||0);
+        out += rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(46+(b.padTop||0))}px ${C.sp(25+(b.marginX||0))}px ${C.sp(16+botExtra)}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${alignOf(b,'center')}" style="padding:0 40px;">
+          <h2 style="margin:0;color:${C.ACCENT};font-family:${FONT_STACK};font-size:34px;font-weight:700;line-height:1.2;text-align:${alignOf(b,'center')};${textStyle(b)}">${esc(b.heading)}</h2>
+        </td></tr></table>` + contentClose + rowClose;
+      }
+
+      if(cards.length){
+        const gap = C.sp(14);
+        const rendered = cards.map((c,idx)=>{
+          const first = idx===0, last = idx===cards.length-1;
+          const radius = first && last ? '24px' : first ? '24px 24px 0 0' : last ? '0 0 24px 24px' : '0';
+          const topPad = C.sp((first ? 34 : 20) + (first && !hasHeading ? (b.padTop||0) : 0));
+          const botPad = C.sp((last ? 32 : 20) + (last ? (b.padBottom||0) : 0));
+          const hasIcon = nonEmpty(b.iconUrl);
+          return `${rowOpen(C.CREAM)}${contentOpen(C.CREAM, '', '', `0 ${C.sp(mX)}px`)}
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="${C.NAVY}" role="presentation" style="background-color:${C.NAVY};border-radius:${radius};"><tr>
+              <td bgcolor="${C.NAVY}" class="event-cell" align="${alignOf(b,'left')}" style="background-color:${C.NAVY};border-radius:${radius};padding:${topPad}px 32px ${botPad}px;width:${hasIcon?'78%':'100%'};" valign="middle">
+                ${nonEmpty(c.title)?`<h5 style="margin:0 0 8px;color:${C.CREAM};font-family:${FONT_STACK};font-size:24px;font-weight:600;line-height:1.3;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(c.title)}</h5>`:''}
+                ${nonEmpty(c.line1)?`<p style="margin:0;color:${C.CREAM};font-family:${FONT_STACK};font-size:17px;font-weight:600;line-height:1.4;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(c.line1)}</p>`:''}
+                ${nonEmpty(c.line2)?`<p style="margin:3px 0 0;color:${C.CREAM};font-family:${FONT_STACK};font-size:17px;font-weight:400;line-height:1.4;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(c.line2)}</p>`:''}
+              </td>
+              ${hasIcon?`<td bgcolor="${C.NAVY}" class="event-cell" align="right" valign="middle" style="background-color:${C.NAVY};border-radius:${radius};padding:${topPad}px 32px ${botPad}px 8px;width:22%;">
+                <img src="${esc(b.iconUrl)}" width="60" alt="" style="display:block;width:60px;height:auto;border:0;margin-left:auto;">
+              </td>`:''}
+            </tr></table>
+          ${contentClose}${rowClose}`;
+        }).join(`${rowOpen(C.CREAM)}${contentOpen(C.CREAM, '', '', `0 ${C.sp(mX)}px`)}<table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="${C.NAVY}" role="presentation" style="background-color:${C.NAVY};"><tr><td bgcolor="${C.NAVY}" style="background-color:${C.NAVY};height:${gap}px;line-height:${gap}px;font-size:1px;">&#8202;</td></tr></table>${contentClose}${rowClose}`);
+        out += rendered;
+      }
+      return out;
+    }
+  },
+
+  infoBox:{
+    label:'Info box (soft card)', badge:'Info box',
+    blank:()=>({id:uid(), type:'infoBox', collapsed:false, iconUrl:'', heading:'', lines:[]}),
+    title:b=> b.heading || 'Info box',
+    isEmpty:b=> !nonEmpty(b.heading)&&!nonEmpty(b.iconUrl)&&b.lines.every(x=>!nonEmpty(x)),
+    fields:(b,i)=> imageField('Icon image URL', `blocks.${i}.iconUrl`, b.iconUrl, {hint:'optional'})
+      + inputField('Heading', `blocks.${i}.heading`, b.heading)
+      + `<div class="field"><label>Lines</label>${repeatList(i,'lines',b.lines,'line',(item,j)=>`<input type="text" data-bind="blocks.${i}.lines.${j}" value="${esc(item)}">`,'+ Add line')}</div>`,
+    email:(b,C)=>{
+      if(BLOCKS.infoBox.isEmpty(b)) return '';
+      const cardBg = shade(C.CREAM, -10);
+      const lines = b.lines.filter(nonEmpty).map(d=>`<p style="margin:0 0 ${C.sp(14)}px;text-align:${alignOf(b,'center')};${textStyle(b)}">${esc(d)}</p>`).join('');
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(50+(b.padTop||0))}px ${C.sp(50+(b.marginX||0))}px ${C.sp(50+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="${cardBg}" role="presentation" style="background-color:${cardBg};border-radius:24px;"><tr><td bgcolor="${cardBg}" style="background-color:${cardBg};border-radius:24px;padding:${C.sp(46)}px;">
+          <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${alignOf(b,'center')}">
+            ${nonEmpty(b.iconUrl)?`<img src="${esc(b.iconUrl)}" width="100" alt="" style="display:block;width:100px;height:auto;border:0;margin:0 auto ${C.sp(22)}px;">`:''}
+            ${nonEmpty(b.heading)?`<h2 style="margin:0 0 ${C.sp(20)}px;color:${C.ACCENT};font-family:${FONT_STACK};font-size:42px;font-weight:600;line-height:1.2;text-align:${alignOf(b,'center')};${textStyle(b)}">${esc(b.heading)}</h2>`:''}
+            ${lines?`<div style="color:${C.ACCENT};font-family:${FONT_STACK};font-size:18px;font-weight:400;line-height:1.4;text-align:${alignOf(b,'center')};">${lines}</div>`:''}
+          </td></tr></table>
+        </td></tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  divider:{
+    label:'Divider', badge:'Divider',
+    blank:()=>({id:uid(), type:'divider', collapsed:true}),
+    title:()=> 'Divider',
+    isEmpty:()=> false,
+    fields:()=> `<div class="field-note">No fields — this adds a plain hairline divider. Remove the section (✕) to omit it.</div>`,
+    email:(b,C)=> rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(44+(b.padTop||0))}px ${C.sp(40+(b.marginX||0))}px ${C.sp(44+(b.padBottom||0))}px`) + `
+      <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td style="font-size:1px;line-height:1px;border-top:6px solid ${C.NAVY};">&#8202;</td></tr></table>
+    ` + contentClose + rowClose
+  },
+
+  quote:{
+    label:'Quote', badge:'Quote',
+    blank:()=>({id:uid(), type:'quote', collapsed:false, text:'', attribution:''}),
+    title:b=> b.text || 'Quote',
+    isEmpty:b=> !nonEmpty(b.text)&&!nonEmpty(b.attribution),
+    fields:(b,i)=> inputField('Quote / statement', `blocks.${i}.text`, b.text, {textarea:true})
+      + inputField('Attribution', `blocks.${i}.attribution`, b.attribution, {hint:'optional'}),
+    email:(b,C)=>{
+      if(BLOCKS.quote.isEmpty(b)) return '';
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(b.padTop||0)}px ${C.sp(40+(b.marginX||0))}px ${C.sp(48+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+          ${nonEmpty(b.text)?`<tr><td align="${alignOf(b,'left')}"><h1 style="margin:0;color:${C.ACCENT};font-family:${FONT_STACK};font-size:32px;font-weight:700;line-height:1.3;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(b.text)}</h1></td></tr>`:''}
+          ${nonEmpty(b.attribution)?`<tr><td align="${alignOf(b,'right')}" style="padding-top:${C.sp(12)}px;"><p style="margin:0;color:${C.NAVY};font-family:${FONT_STACK};font-size:15px;font-weight:400;text-align:${alignOf(b,'right')};${textStyle(b)}">${esc(b.attribution)}</p></td></tr>`:''}
+        </table>` + contentClose + rowClose;
+    }
+  },
+
+  mediaBanner:{
+    label:'Media banner (image, video link, buttons)', badge:'Media',
+    blank:()=>({id:uid(), type:'mediaBanner', collapsed:false, bgImageUrl:'', iconUrl:'', heading:'', body:'', mediaType:'none', mediaUrl:'', mediaLink:'', actions:[]}),
+    title:b=> b.heading || 'Media banner',
+    isEmpty:b=> !nonEmpty(b.heading)&&!nonEmpty(b.body)&&!nonEmpty(b.iconUrl)&&b.mediaType==='none'&&b.actions.every(a=>!nonEmpty(a.text)&&!nonEmpty(a.url)),
+    fields:(b,i)=> imageField('Background image URL', `blocks.${i}.bgImageUrl`, b.bgImageUrl, {hint:'optional texture — falls back to solid navy'})
+      + imageField('Icon image URL', `blocks.${i}.iconUrl`, b.iconUrl, {hint:'optional'})
+      + inputField('Heading', `blocks.${i}.heading`, b.heading)
+      + inputField('Body text', `blocks.${i}.body`, b.body, {textarea:true, hint:'optional'})
+      + inputField('Media type', `blocks.${i}.mediaType`, b.mediaType, {select:[{value:'none',label:'None'},{value:'image',label:'Image'},{value:'video',label:'Video (thumbnail + link)'}]})
+      + (b.mediaType!=='none' ? inputField(b.mediaType==='video' ? 'Video thumbnail image URL' : 'Image URL', `blocks.${i}.mediaUrl`, b.mediaUrl) : '')
+      + (b.mediaType!=='none' ? inputField(b.mediaType==='video' ? 'Video link (opens when thumbnail/link is clicked)' : 'Click-through link', `blocks.${i}.mediaLink`, b.mediaLink, {hint:'optional'}) : '')
+      + `<div class="field"><label>Buttons / links</label>${repeatList(i,'actions',b.actions,'action',(a,j)=>`
+          ${inputField('Link text', `blocks.${i}.actions.${j}.text`, a.text)}
+          ${inputField('Link URL', `blocks.${i}.actions.${j}.url`, a.url)}
+        `,'+ Add link')}</div>`,
+    email:(b,C)=>{
+      if(BLOCKS.mediaBanner.isEmpty(b)) return '';
+      const actions = b.actions.filter(a=>nonEmpty(a.text)||nonEmpty(a.url));
+      let media = '';
+      if(b.mediaType==='image' && nonEmpty(b.mediaUrl)){
+        const img = `<img src="${esc(b.mediaUrl)}" width="600" alt="" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:12px;">`;
+        media = `<div style="padding:14px 0;">${nonEmpty(b.mediaLink)?`<a href="${esc(b.mediaLink)}" target="_blank" rel="noopener">${img}</a>`:img}</div>`;
+      } else if(b.mediaType==='video' && nonEmpty(b.mediaUrl)){
+        const img = `<img src="${esc(b.mediaUrl)}" width="600" alt="video thumbnail" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-radius:12px;">`;
+        const wrapped = nonEmpty(b.mediaLink) ? `<a href="${esc(b.mediaLink)}" target="_blank" rel="noopener">${img}</a>` : img;
+        media = `<div style="padding:14px 0 6px;">${wrapped}</div>` +
+          (nonEmpty(b.mediaLink) ? `<p style="margin:0 0 10px;"><a href="${esc(b.mediaLink)}" target="_blank" rel="noopener" style="color:#ffffff;text-decoration:underline;font-family:${FONT_STACK};font-size:16px;font-weight:600;">▶ Watch the video</a></p>` : '');
+      }
+      const actionsHtml = actions.map(a=> nonEmpty(a.url)
+        ? `<p style="margin:0 0 10px;text-align:${alignOf(b,'left')};${textStyle(b)}"><a href="${esc(a.url)}" target="_blank" rel="noopener" style="color:#ffffff;text-decoration:underline;font-family:${FONT_STACK};font-size:18px;font-weight:500;">${esc(a.text || a.url)}</a></p>`
+        : `<p style="margin:0 0 10px;color:#ffffff;font-family:${FONT_STACK};font-size:18px;font-weight:500;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(a.text)}</p>`
+      ).join('');
+      const inner = `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td style="padding:${C.sp(46+(b.padTop||0))}px ${C.sp(55+(b.marginX||0))}px ${C.sp(40+(b.padBottom||0))}px ${C.sp(46+(b.marginX||0))}px;">
+          ${nonEmpty(b.iconUrl)?`<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="right"><img src="${esc(b.iconUrl)}" width="110" alt="" style="display:block;width:110px;height:auto;border:0;"></td></tr></table><div style="height:${C.sp(26)}px;line-height:${C.sp(26)}px;font-size:1px;">&#8202;</div>`:''}
+          ${nonEmpty(b.heading)?`<h3 style="margin:0 0 ${C.sp(14)}px;color:#ffffff;font-family:${FONT_STACK};font-size:36px;font-weight:500;line-height:1.25;text-align:${alignOf(b,'left')};${textStyle(b)}">${esc(b.heading)}</h3>`:''}
+          ${nonEmpty(b.body)?`<div style="color:#ffffff;font-family:${FONT_STACK};font-size:18px;font-weight:400;line-height:1.45;text-align:${alignOf(b,'left')};">${paragraphs(b.body, `text-align:${alignOf(b,'left')};${textStyle(b)}`)}</div>`:''}
+          ${media}
+          ${actionsHtml}
+          <div style="height:${C.sp(36)}px;line-height:${C.sp(36)}px;font-size:1px;">&#8202;</div>
+        </td></tr></table>`;
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, 'border-radius:0 0 32px 32px;') + bulletproofBg(b.bgImageUrl, C.NAVY, 300, inner) + contentClose + rowClose;
+    }
+  },
+
+  imageBlock:{
+    label:'Standalone image', badge:'Image',
+    blank:()=>({id:uid(), type:'imageBlock', collapsed:false, imageUrl:'', alt:'', linkUrl:'', caption:''}),
+    title:b=> b.caption || b.alt || 'Standalone image',
+    isEmpty:b=> !nonEmpty(b.imageUrl),
+    fields:(b,i)=> imageField('Image URL', `blocks.${i}.imageUrl`, b.imageUrl)
+      + inputField('Alt text', `blocks.${i}.alt`, b.alt)
+      + inputField('Click-through link', `blocks.${i}.linkUrl`, b.linkUrl, {hint:'optional'})
+      + inputField('Caption', `blocks.${i}.caption`, b.caption, {hint:'optional'}),
+    email:(b,C)=>{
+      if(!nonEmpty(b.imageUrl)) return '';
+      const img = `<img src="${esc(b.imageUrl)}" width="620" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:620px;height:auto;border:0;">`;
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(38+(b.padTop||0))}px ${C.sp(40+(b.marginX||0))}px ${C.sp(38+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${alignOf(b,'center')}">
+          ${nonEmpty(b.linkUrl)?`<a href="${esc(b.linkUrl)}" target="_blank" rel="noopener">${img}</a>`:img}
+          ${nonEmpty(b.caption)?`<p style="margin:${C.sp(14)}px 0 0;color:#282828;font-family:${FONT_STACK};font-size:14px;font-weight:400;text-align:${alignOf(b,'center')};${textStyle(b)}">${esc(b.caption)}</p>`:''}
+        </td></tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  footerImage:{
+    label:'Footer image', badge:'Footer',
+    blank:()=>({id:uid(), type:'footerImage', collapsed:false, imageUrl:'', alt:''}),
+    title:()=> 'Footer image',
+    isEmpty:b=> !nonEmpty(b.imageUrl),
+    fields:(b,i)=> imageField('Footer image URL', `blocks.${i}.imageUrl`, b.imageUrl)
+      + inputField('Alt text', `blocks.${i}.alt`, b.alt),
+    email:(b,C)=>{
+      if(!nonEmpty(b.imageUrl)) return '';
+      return rowOpen(C.NAVY) + contentOpen(C.NAVY, 'border-radius:40px 40px 0 0;') + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${alignOf(b,'center')}" style="padding:${C.sp(54+(b.padTop||0))}px ${C.sp(50+(b.marginX||0))}px ${C.sp(54+(b.padBottom||0))}px;">
+          <img src="${esc(b.imageUrl)}" width="460" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:460px;height:auto;border:0;">
+        </td></tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  textBlock:{
+    label:'Text block', badge:'Text',
+    blank:()=>({id:uid(), type:'textBlock', collapsed:false, heading:'', body:''}),
+    title:b=> b.heading || (nonEmpty(b.body) ? b.body.slice(0,40) : 'Text block'),
+    isEmpty:b=> !nonEmpty(b.heading) && !nonEmpty(b.body),
+    fields:(b,i)=> inputField('Heading', `blocks.${i}.heading`, b.heading, {hint:'optional'})
+      + inputField('Body text', `blocks.${i}.body`, b.body, {textarea:true, rows:4, hint:'optional — plain text, line breaks are kept'}),
+    email:(b,C)=>{
+      if(!nonEmpty(b.heading) && !nonEmpty(b.body)) return '';
+      const al = alignOf(b,'left');
+      const bodyHtml = esc(b.body||'').replace(/\n/g,'<br>');
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(36+(b.padTop||0))}px ${C.sp(40+(b.marginX||0))}px ${C.sp(36+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${al}">
+          ${nonEmpty(b.heading)?`<h2 style="margin:0 0 ${C.sp(12)}px;color:${C.ACCENT};font-family:${FONT_STACK};font-size:26px;font-weight:700;line-height:1.3;text-align:${al};${textStyle(b)}">${esc(b.heading)}</h2>`:''}
+          ${nonEmpty(b.body)?`<p style="margin:0;color:#282828;font-family:${FONT_STACK};font-size:16px;font-weight:400;line-height:1.6;text-align:${al};${textStyle(b)}">${bodyHtml}</p>`:''}
+        </td></tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  button:{
+    label:'Button / CTA', badge:'Button',
+    blank:()=>({id:uid(), type:'button', collapsed:false, text:'', url:'', color:'navy'}),
+    title:b=> b.text || 'Button / CTA',
+    isEmpty:b=> !nonEmpty(b.text) && !nonEmpty(b.url),
+    fields:(b,i)=> inputField('Button text', `blocks.${i}.text`, b.text, {hint:'e.g. "RSVP now"'})
+      + inputField('Link URL', `blocks.${i}.url`, b.url)
+      + inputField('Button color', `blocks.${i}.color`, b.color||'navy', {select:[
+          {value:'navy', label:'Navy'},
+          {value:'accent', label:'Accent'}
+        ]}),
+    email:(b,C)=>{
+      if(!nonEmpty(b.text) && !nonEmpty(b.url)) return '';
+      const bg = b.color==='accent' ? C.ACCENT : C.NAVY;
+      const al = alignOf(b,'center');
+      const tableAlign = al==='right' ? 'right' : (al==='left' ? 'left' : 'center');
+      const label = esc(b.text || b.url);
+      const href = esc(b.url || '#');
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(30+(b.padTop||0))}px ${C.sp(40+(b.marginX||0))}px ${C.sp(30+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${al}">
+          <table border="0" cellpadding="0" cellspacing="0" role="presentation" align="${tableAlign}"><tr>
+            <td align="center" bgcolor="${bg}" style="background-color:${bg};border-radius:8px;">
+              <a href="${href}" target="_blank" rel="noopener" style="display:inline-block;padding:16px 36px;font-family:${FONT_STACK};font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;background-color:${bg};${textStyle(b)}">${label}</a>
+            </td>
+          </tr></table>
+        </td></tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  twoColumn:{
+    label:'Two-column (image + text)', badge:'2-Col',
+    blank:()=>({id:uid(), type:'twoColumn', collapsed:false, imageUrl:'', alt:'', imageSide:'left', heading:'', body:'', linkText:'', linkUrl:''}),
+    title:b=> b.heading || 'Two-column section',
+    isEmpty:b=> !nonEmpty(b.imageUrl) && !nonEmpty(b.heading) && !nonEmpty(b.body),
+    fields:(b,i)=> imageField('Image', `blocks.${i}.imageUrl`, b.imageUrl, {hint:'optional'})
+      + inputField('Alt text', `blocks.${i}.alt`, b.alt)
+      + inputField('Image side', `blocks.${i}.imageSide`, b.imageSide||'left', {select:[
+          {value:'left', label:'Image on left'},
+          {value:'right', label:'Image on right'}
+        ]})
+      + inputField('Heading', `blocks.${i}.heading`, b.heading, {hint:'optional'})
+      + inputField('Body text', `blocks.${i}.body`, b.body, {textarea:true, rows:3, hint:'optional'})
+      + `<div class="row2">${inputField('Link text', `blocks.${i}.linkText`, b.linkText, {hint:'optional'})}${inputField('Link URL', `blocks.${i}.linkUrl`, b.linkUrl, {hint:'optional'})}</div>`,
+    email:(b,C)=>{
+      if(!nonEmpty(b.imageUrl) && !nonEmpty(b.heading) && !nonEmpty(b.body)) return '';
+      const al = alignOf(b,'left');
+      const hasImg = nonEmpty(b.imageUrl);
+      const onRight = b.imageSide==='right';
+      const imgPad = hasImg ? (onRight ? '0 0 0 20px' : '0 20px 0 0') : '0';
+      const imgCell = hasImg ? `<td width="260" class="two-col-cell" valign="top" style="padding:${imgPad};"><img src="${esc(b.imageUrl)}" width="260" alt="${esc(b.alt)}" style="display:block;width:100%;max-width:260px;height:auto;border:0;border-radius:8px;"></td>` : '';
+      const textCell = `<td class="two-col-cell" valign="top" align="${al}">
+        ${nonEmpty(b.heading)?`<h3 style="margin:0 0 ${C.sp(10)}px;color:${C.ACCENT};font-family:${FONT_STACK};font-size:22px;font-weight:700;line-height:1.3;text-align:${al};${textStyle(b)}">${esc(b.heading)}</h3>`:''}
+        ${nonEmpty(b.body)?`<p style="margin:0 0 ${C.sp(10)}px;color:#282828;font-family:${FONT_STACK};font-size:15px;font-weight:400;line-height:1.6;text-align:${al};${textStyle(b)}">${esc(b.body).replace(/\n/g,'<br>')}</p>`:''}
+        ${nonEmpty(b.linkUrl)?`<p style="margin:0;text-align:${al};"><a href="${esc(b.linkUrl)}" target="_blank" rel="noopener" style="color:${C.ACCENT};font-family:${FONT_STACK};font-size:15px;font-weight:600;text-decoration:underline;">${esc(b.linkText||b.linkUrl)}</a></p>`:''}
+      </td>`;
+      const row = hasImg ? (onRight ? textCell + imgCell : imgCell + textCell) : textCell;
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(36+(b.padTop||0))}px ${C.sp(40+(b.marginX||0))}px ${C.sp(36+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr>${row}</tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  spacer:{
+    label:'Spacer', badge:'Spacer',
+    blank:()=>({id:uid(), type:'spacer', collapsed:false, height:40, bg:'cream'}),
+    title:b=> `Spacer — ${b.height!=null?b.height:40}px`,
+    isEmpty:()=> false,
+    noGenericSpacing:true,
+    fields:(b,i)=> inputField('Height', `blocks.${i}.height`, b.height!=null?b.height:40, {number:true, max:400, hint:'px of blank vertical space'})
+      + inputField('Background', `blocks.${i}.bg`, b.bg||'cream', {select:[
+          {value:'cream', label:'Cream (match body background)'},
+          {value:'navy', label:'Navy (match dark sections)'}
+        ]}),
+    email:(b,C)=>{
+      const bg = b.bg==='navy' ? C.NAVY : C.CREAM;
+      const h = C.sp(Math.max(1, b.height!=null?b.height:40));
+      return rowOpen(bg) + `<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="${bg}" style="background-color:${bg};"><tr><td bgcolor="${bg}" style="background-color:${bg};height:${h}px;line-height:${h}px;font-size:1px;">&#8202;</td></tr></table>` + rowClose;
+    }
+  },
+
+  contactBar:{
+    label:'Contact bar', badge:'Contact',
+    blank:()=>({id:uid(), type:'contactBar', collapsed:false, name:'', role:'', email:'', textPhone:'', phone:'', phoneNote:'', links:[]}),
+    title:b=> b.name || 'Contact bar',
+    isEmpty:b=> !nonEmpty(b.name)&&!nonEmpty(b.role)&&!nonEmpty(b.email)&&!nonEmpty(b.textPhone)&&!nonEmpty(b.phone)&&b.links.every(l=>!nonEmpty(l.text)&&!nonEmpty(l.url)),
+    fields:(b,i)=> inputField('Name', `blocks.${i}.name`, b.name)
+      + inputField('Role / title', `blocks.${i}.role`, b.role, {hint:'optional'})
+      + `<div class="row2">
+          ${inputField('Email', `blocks.${i}.email`, b.email, {hint:'optional'})}
+          ${inputField('Text number', `blocks.${i}.textPhone`, b.textPhone, {hint:'optional'})}
+        </div>`
+      + `<div class="row2">
+          ${inputField('Phone number', `blocks.${i}.phone`, b.phone, {hint:'optional'})}
+          ${inputField('Phone note', `blocks.${i}.phoneNote`, b.phoneNote, {hint:'e.g. "still being finalized" — optional'})}
+        </div>`
+      + `<div class="field"><label>Links</label>${repeatList(i,'links',b.links,'action',(l,j)=>`
+          ${inputField('Link text', `blocks.${i}.links.${j}.text`, l.text)}
+          ${inputField('Link URL', `blocks.${i}.links.${j}.url`, l.url)}
+        `,'+ Add link')}</div>`,
+    email:(b,C)=>{
+      if(BLOCKS.contactBar.isEmpty(b)) return '';
+      const al = alignOf(b,'left');
+      const rowStyle = `margin:0 0 ${C.sp(6)}px;color:${C.CREAM};font-family:${FONT_STACK};font-size:16px;font-weight:400;line-height:1.5;text-align:${al};${textStyle(b)}`;
+      const labelStyle = `font-weight:700;`;
+      const rows = [];
+      if(nonEmpty(b.email)) rows.push(`<p style="${rowStyle}"><span style="${labelStyle}">Email:</span> <a href="mailto:${esc(b.email)}" style="color:${C.CREAM};text-decoration:underline;">${esc(b.email)}</a></p>`);
+      if(nonEmpty(b.textPhone)) rows.push(`<p style="${rowStyle}"><span style="${labelStyle}">Text:</span> <a href="sms:${esc(b.textPhone.replace(/[^0-9+]/g,''))}" style="color:${C.CREAM};text-decoration:underline;">${esc(b.textPhone)}</a></p>`);
+      if(nonEmpty(b.phone)) rows.push(`<p style="${rowStyle}"><span style="${labelStyle}">Phone:</span> <a href="tel:${esc(b.phone.replace(/[^0-9+]/g,''))}" style="color:${C.CREAM};text-decoration:underline;">${esc(b.phone)}</a>${nonEmpty(b.phoneNote)?` <span style="opacity:.85;">(${esc(b.phoneNote)})</span>`:''}</p>`);
+      const links = b.links.filter(l=>nonEmpty(l.text)||nonEmpty(l.url));
+      const linksHtml = links.map(l=> nonEmpty(l.url)
+        ? `<p style="margin:0 0 ${C.sp(8)}px;text-align:${al};${textStyle(b)}"><a href="${esc(l.url)}" target="_blank" rel="noopener" style="color:${C.CREAM};text-decoration:underline;font-family:${FONT_STACK};font-size:16px;font-weight:600;">${esc(l.text || l.url)}</a></p>`
+        : `<p style="margin:0 0 ${C.sp(8)}px;color:${C.CREAM};font-family:${FONT_STACK};font-size:16px;font-weight:600;text-align:${al};${textStyle(b)}">${esc(l.text)}</p>`
+      ).join('');
+      return rowOpen(C.NAVY) + contentOpen(C.NAVY, '', '', `${C.sp(44+(b.padTop||0))}px ${C.sp(50+(b.marginX||0))}px ${C.sp(44+(b.padBottom||0))}px`) + `
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td align="${al}">
+          ${nonEmpty(b.name)?`<h3 style="margin:0 0 ${nonEmpty(b.role)?'2px':C.sp(14)+'px'};color:${C.CREAM};font-family:${FONT_STACK};font-size:24px;font-weight:700;line-height:1.3;text-align:${al};${textStyle(b)}">${esc(b.name)}</h3>`:''}
+          ${nonEmpty(b.role)?`<p style="margin:0 0 ${C.sp(18)}px;color:${C.CREAM};font-family:${FONT_STACK};font-size:15px;font-weight:400;opacity:.85;text-align:${al};${textStyle(b)}">${esc(b.role)}</p>`:''}
+          ${rows.join('')}
+          ${linksHtml ? `<div style="height:${C.sp(14)}px;line-height:${C.sp(14)}px;font-size:1px;">&#8202;</div>${linksHtml}` : ''}
+        </td></tr></table>` + contentClose + rowClose;
+    }
+  },
+
+  custom:{
+    label:'Advanced: custom HTML', badge:'Custom',
+    blank:()=>({id:uid(), type:'custom', collapsed:true, html:''}),
+    title:()=> 'Custom HTML',
+    isEmpty:b=> !nonEmpty(b.html),
+    fields:(b,i)=> `<div class="field-note">For power users — this is inserted exactly as written, inside a full-width cream section. Use it for anything the other section types don't cover (a video embed your platform supports, a table, whatever you need). Invalid HTML can break the layout below it.</div>`
+      + inputField('Raw HTML', `blocks.${i}.html`, b.html, {textarea:true, rows:6}),
+    email:(b,C)=>{
+      if(!nonEmpty(b.html)) return '';
+      return rowOpen(C.CREAM) + contentOpen(C.CREAM, '', '', `${C.sp(20+(b.padTop||0))}px ${C.sp(40+(b.marginX||0))}px ${C.sp(20+(b.padBottom||0))}px`) + b.html + contentClose + rowClose;
+    }
+  }
+};
+
+/* ============================================================
+   DEFAULT CONTENT (the user's current FYE template, as a starting point)
+   ============================================================ */
+function sampleState(){
+  return {
+    colors: { navy:"#0f2d5a", cream:"#f7f1e4", accent:"#1e3077" },
+    spacingScale: 1,
+    showDarkModeNote: true,
+    preheader:"This week: orientation, Cougstival, and a board game night.",
+    blocks: [
+      { id:uid(), type:'logo', collapsed:false,
+        imageUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/d20/qnh/ens/firstyearexp_horiz_navy_1.png",
+        alt:"First-Year Experience" },
+      { id:uid(), type:'hero', collapsed:false,
+        bgImageUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/w1y/m3z/zww/000346d6-5fce-4d3a-87e3-c7442c9a80b7.png",
+        lines:["Eye-Catching Title","Hint at what's in the email"] },
+      { id:uid(), type:'iconText', collapsed:false,
+        pairs:[
+          { iconUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/yoj/w6a/va1/material-symbols--conversion-path%281%29.png", heading:"Connection Goes Here", body:"Personal anecdote, inspirational thought, etc.", align:'left' },
+          { iconUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/0zj/vtq/ofh/material-symbols--book-2-rounded.png", heading:"Learning Strategy", body:"Specific learning strategy.", align:'right' }
+        ] },
+      { id:uid(), type:'highlightCard', collapsed:false,
+        iconUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/dwh/336/s9k/material-symbols--altitude-rounded.png",
+        heading:"Resource Highlight", intro:"This resource can help you with",
+        bullets:["Managing employment","Filing Taxes","Direct Deposit"],
+        closing:"Check it out at WSC 100" },
+      { id:uid(), type:'cardList', collapsed:false,
+        heading:"First-Year Experience Events",
+        iconUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/prw/3ij/qj4/material-symbols--groups-rounded.png",
+        cards:[
+          {title:"First-Year Orientation", line1:"September 1st-5th", line2:"Engineering Building"},
+          {title:"Cougstival", line1:"September 14th, 15th, and 16th, 10:00 AM - 3:00 PM", line2:"Brigham Square"},
+          {title:"Board Game Party", line1:"September 22nd, 7:00 PM", line2:"Kimball Tower 1014"}
+        ] },
+      { id:uid(), type:'infoBox', collapsed:false,
+        iconUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/7iz/36v/u21/material-symbols--calendar-add-on-outline-rounded.png",
+        heading:"Important Dates",
+        lines:["September 4th - First day of classes","September 21st - Labor Day"] },
+      { id:uid(), type:'divider', collapsed:true },
+      { id:uid(), type:'quote', collapsed:false,
+        text:"Think Celestial", attribution:"- Russell M. Nelson, 2023" },
+      { id:uid(), type:'mediaBanner', collapsed:false,
+        bgImageUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/034/y5z/rq0/666982e8-18a8-4cbc-ab32-d88d65248826.png",
+        iconUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/kqf/j8l/5cf/material-symbols--sliders.png",
+        heading:"Interactive Content", body:"", mediaType:'none', mediaUrl:'', mediaLink:'',
+        actions:[{text:"16 Personalities test", url:"https://www.16personalities.com/free-personality-test"}] },
+      { id:uid(), type:'contactBar', collapsed:false,
+        name:"Tanner Nelson", role:"Peer Mentor",
+        email:"tannernelson@byu.edu", textPhone:"(801) 406-1878",
+        phone:"(801) 378-2914", phoneNote:"still being finalized",
+        links:[
+          {text:"General hub site (view appointments and advisors)", url:"https://byu2.my.site.com/s/"},
+          {text:"My personal hub profile (make an appointment with me)", url:"https://byu2.my.site.com/s/profile/005Pe00000P3Q7dIAF"}
+        ] },
+      { id:uid(), type:'footerImage', collapsed:false,
+        imageUrl:"https://f9bb0c8258.imgdist.com/pub/bfra/lnu3bc1i/8hw/1o4/0cs/Social%20Media%20Thumbnail_New_V1.png",
+        alt:"First-Year Experience" }
+    ]
+  };
+}
+
+let state = loadState() || sampleState();
+
+/* ============================================================
+   PERSISTENCE (per-browser convenience only)
+   ============================================================ */
+function saveState(){
+  try{ localStorage.setItem('fye-builder-state', JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem('fye-builder-state');
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(!parsed || !Array.isArray(parsed.blocks)) return null;
+    if(parsed.showDarkModeNote == null) parsed.showDarkModeNote = true;
+    return parsed;
+  }catch(e){ return null; }
+}
+
+/* GitHub image hosting config is kept deliberately separate from `state` —
+   it holds a personal access token, and `state` is exactly what Export
+   template / template-JSON import round-trip, so a token must never end up
+   inside that file. It lives in its own localStorage key instead. */
+function loadGithubConfig(){
+  try{
+    const raw = localStorage.getItem('fye-builder-github-config');
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  }catch(e){ return null; }
+}
+function saveGithubConfig(){
+  try{ localStorage.setItem('fye-builder-github-config', JSON.stringify(githubConfig)); }catch(e){}
+}
+let githubConfig = Object.assign({ token:'', repo:'', branch:'main', folder:'images' }, loadGithubConfig() || {});
+
+/* ============================================================
+   FORM RENDERING (left pane)
+   ============================================================ */
+function field(label, bindPath, value, opts){
+  return inputField(label, bindPath, value, opts);
+}
+
+function renderGithubSettings(){
+  const g = githubConfig;
+  const configured = nonEmpty(g.token) && nonEmpty(g.repo);
+  return `<div class="section collapsed">
+    <div class="section-head"><h2>GitHub image hosting${configured?' <span class=\"gh-status-dot\" title=\"Configured\"></span>':''}</h2><span class="chev">▾</span></div>
+    <div class="section-sub">Optional — lets any image field's "Upload to GitHub" button push a file straight into a repo you own and use the resulting link, instead of embedding it.</div>
+    <div class="section-body">
+      <div class="field">
+        <label>Repository<span class="hint"> — must be public, so recipients' inboxes can load the images</span></label>
+        <input type="text" data-gh-field="repo" value="${esc(g.repo)}" placeholder="yourusername/your-repo">
+      </div>
+      <div class="row2">
+        <div class="field"><label>Branch</label><input type="text" data-gh-field="branch" value="${esc(g.branch||'main')}" placeholder="main"></div>
+        <div class="field"><label>Folder<span class="hint"> — optional</span></label><input type="text" data-gh-field="folder" value="${esc(g.folder)}" placeholder="images"></div>
+      </div>
+      <div class="field">
+        <label>Personal access token<span class="hint"> — fine-grained token, scoped to just this repo, with "Contents: Read and write" permission</span></label>
+        <input type="password" data-gh-field="token" value="${esc(g.token)}" placeholder="github_pat_...">
+      </div>
+      <div class="field-note">Create one at github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens. Give it access to only this one repository, with the "Contents" permission set to Read and write, and an expiration date. Your token is stored only in this browser (never in an exported template, never sent anywhere but directly to api.github.com) — use <strong>Forget token</strong> below on a shared computer.</div>
+      <button type="button" class="btn btn-sm" id="btnGithubForget">Forget token</button>
+    </div>
+  </div>`;
+}
+
+function renderForm(){
+  const s = state;
+  let html = '';
+
+  html += `<div class="section collapsed">
+    <div class="section-head"><h2>Brand colors</h2><span class="chev">▾</span></div>
+    <div class="section-sub">Defaults match your current template.</div>
+    <div class="section-body">
+      <div class="row2">
+        ${field('Navy (dark backgrounds)', 'colors.navy', s.colors.navy, {type:'color'})}
+        ${field('Cream (card background)', 'colors.cream', s.colors.cream, {type:'color'})}
+      </div>
+      ${field('Accent (headings on cream)', 'colors.accent', s.colors.accent, {type:'color'})}
+      ${field('Preview/preheader text', 'preheader', s.preheader, {hint:'the snippet shown next to the subject line, optional', textarea:true, rows:2})}
+      ${field('Show a small "having trouble reading this?" note at the bottom', 'showDarkModeNote', s.showDarkModeNote, {checkbox:true, hint:'points readers to Outlook\'s "Turn on the Lights" button if dark mode is garbling colors'})}
+    </div>
+  </div>`;
+
+  const scale = s.spacingScale || 1;
+  const presets = [{v:0.8,l:'Cozy'},{v:1,l:'Comfortable'},{v:1.3,l:'Roomy'},{v:1.6,l:'Airy'}];
+  html += `<div class="section">
+    <div class="section-head"><h2>Spacing</h2><span class="chev">▾</span></div>
+    <div class="section-sub">Sets the overall breathing room in every section at once. Fine-tune any individual section below with its own "space above/below" fields.</div>
+    <div class="section-body">
+      <div class="align-toggle" id="spacingPresets" style="width:100%;">
+        ${presets.map(p=>`<button type="button" data-spacing-preset="${p.v}" class="${Math.abs(scale-p.v)<0.01?'active':''}" style="flex:1;">${p.l}</button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  html += renderGithubSettings();
+
+  html += s.blocks.map((b,i)=>{
+    const def = BLOCKS[b.type];
+    if(!def) return '';
+    const empty = def.isEmpty(b);
+    const isFirst = i===0, isLast = i===s.blocks.length-1;
+    return `<div class="block-card${b.collapsed?' collapsed':''}${empty?' is-empty':''}" data-block-index="${i}">
+      <div class="block-head" data-action="blk-toggle" data-block="${i}">
+        <span class="drag-handle" title="Drag to reorder">⠿</span>
+        <span class="chev">▾</span>
+        <span class="block-type-badge">${def.badge}</span>
+        <span class="block-title">${esc(def.title(b))}</span>
+        ${empty?'<span class="block-empty-flag">— empty, omitted from output</span>':''}
+        <span class="block-controls">
+          <button type="button" data-action="blk-up" data-block="${i}" title="Move up" ${isFirst?'disabled style="opacity:.3;cursor:default;"':''}>↑</button>
+          <button type="button" data-action="blk-down" data-block="${i}" title="Move down" ${isLast?'disabled style="opacity:.3;cursor:default;"':''}>↓</button>
+          <button type="button" data-action="blk-dup" data-block="${i}" title="Duplicate">⧉</button>
+          <button type="button" class="danger" data-action="blk-remove" data-block="${i}" title="Remove">✕</button>
+        </span>
+      </div>
+      <div class="block-body">
+        ${def.fields(b,i)}
+        ${def.noGenericSpacing ? '' : `
+        <div class="field-note">Gap between this section and its neighbors:</div>
+        <div class="row2">
+          ${inputField('Space above', `blocks.${i}.spaceBefore`, b.spaceBefore||0, {number:true, hint:'px, extra'})}
+          ${inputField('Space below', `blocks.${i}.spaceAfter`, b.spaceAfter||0, {number:true, hint:'px, extra'})}
+        </div>
+        <div class="field-note">Inside this section — space around its own text/content:</div>
+        <div class="row2">
+          ${inputField('Top padding', `blocks.${i}.padTop`, b.padTop||0, {number:true, hint:'px, extra'})}
+          ${inputField('Bottom padding', `blocks.${i}.padBottom`, b.padBottom||0, {number:true, hint:'px, extra'})}
+        </div>
+        ${inputField('Left/right margin', `blocks.${i}.marginX`, b.marginX||0, {number:true, max:200, hint:'px, extra inset from both edges'})}
+        <div class="field-note">Text style for this section:</div>
+        <div class="row2">
+          ${inputField('Text alignment', `blocks.${i}.textAlign`, b.textAlign||'', {select:[
+            {value:'', label:'Default for this section'},
+            {value:'left', label:'Left'},
+            {value:'center', label:'Center'},
+            {value:'right', label:'Right'},
+            {value:'justify', label:'Justify'}
+          ]})}
+          ${inputField('Text wrapping', `blocks.${i}.textWrap`, b.textWrap||'', {select:[
+            {value:'', label:'Normal wrapping'},
+            {value:'nowrap', label:'Prevent wrapping'},
+            {value:'break', label:'Break long words'}
+          ]})}
+        </div>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  const options = Object.keys(BLOCKS).map(k=>`<option value="${k}">${BLOCKS[k].label}</option>`).join('');
+  html += `<div class="add-section-bar">
+    <select id="addBlockType">${options}</select>
+    <button class="btn btn-primary btn-sm" type="button" id="addBlockBtn">+ Add section</button>
+  </div>`;
+
+  document.getElementById('formRoot').innerHTML = html;
+}
+
+/* ============================================================
+   EMAIL HTML GENERATOR
+   ============================================================ */
+function buildEmailHTML(s, opts){
+  opts = opts || {};
+  const scale = s.spacingScale || 1;
+  const sp = n => Math.round(n * scale);
+  const C = { NAVY: s.colors.navy, CREAM: s.colors.cream, ACCENT: s.colors.accent, sp };
+  const CARD_BG = shade(C.CREAM, -10);
+
+  function spacer(px, bg){
+    if(!px || px <= 0) return '';
+    return rowOpen(bg) + `<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"><tr><td style="font-size:1px;line-height:1px;height:${px}px;" height="${px}">&#8202;</td></tr></table>` + rowClose;
+  }
+
+  const bodyContent = s.blocks.map(b=>{
+    const def = BLOCKS[b.type];
+    if(!def) return '';
+    let out = '';
+    try{ out = def.email(b, C); }catch(e){ out = ''; }
+    if(!out) return '';
+    const before = spacer(sp(b.spaceBefore||0), C.CREAM);
+    const after = spacer(sp(b.spaceAfter||0), C.CREAM);
+    return before + out + after;
+  }).filter(Boolean).join('\n');
+
+  const titleText = (s.blocks.find(b=>b.type==='hero' && b.lines && b.lines.some(nonEmpty)) || {}).lines;
+  const docTitle = (titleText && titleText.find(nonEmpty)) || 'Newsletter';
+
+  const darkModeNote = s.showDarkModeNote ? (
+    rowOpen(C.NAVY) + contentOpen(C.NAVY, '', '', `${C.sp(18)}px ${C.sp(40)}px ${C.sp(30)}px`) + `
+      <p style="margin:0;color:${shade(C.CREAM,-35)};font-family:${FONT_STACK};font-size:13px;font-weight:400;line-height:1.5;text-align:center;">Having trouble reading this in Outlook? Look for the "Turn on the Lights" button near the top of the message to view it in its original colors.</p>
+    ` + contentClose + rowClose
+  ) : '';
+
+  return `<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>${esc(docTitle)}</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch><o:AllowPNG/></o:OfficeDocumentSettings></xml>
+<![endif]-->
+<!--[if !mso]><!-->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700" rel="stylesheet" type="text/css">
+<!--<![endif]-->
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:0; }
+  table, td { border-collapse: collapse; }
+  a[x-apple-data-detectors] { color:inherit !important; text-decoration:inherit !important; }
+  #MessageViewBody a { color:inherit; text-decoration:none; }
+  p { line-height: inherit; }
+  /* This design already picks its own light/dark-safe colors (navy + cream),
+     so instead of asking clients to suppress dark mode, we explicitly claim
+     support for BOTH schemes (meta tags above) and then re-declare our own
+     colors under a real dark media query, so mail apps that check for actual
+     matching dark CSS treat this as "handled" rather than something to
+     auto-correct. The [data-ogsc]/[data-ogsb] rules are a second safety net
+     for Outlook.com/New Outlook's own contrast-repair pass, which tags
+     elements it has altered with those attributes. */
+  @media (prefers-color-scheme: dark){
+    [style*="background-color:${C.NAVY}"], [bgcolor="${C.NAVY}"] { background-color: ${C.NAVY} !important; }
+    [style*="background-color:${C.CREAM}"], [bgcolor="${C.CREAM}"] { background-color: ${C.CREAM} !important; }
+    [style*="background-color:${C.ACCENT}"], [bgcolor="${C.ACCENT}"] { background-color: ${C.ACCENT} !important; }
+    [style*="background-color:${CARD_BG}"], [bgcolor="${CARD_BG}"] { background-color: ${CARD_BG} !important; }
+    [style^="color:${C.NAVY}"], [style*=";color:${C.NAVY}"] { color: ${C.NAVY} !important; }
+    [style^="color:${C.CREAM}"], [style*=";color:${C.CREAM}"] { color: ${C.CREAM} !important; }
+    [style^="color:${C.ACCENT}"], [style*=";color:${C.ACCENT}"] { color: ${C.ACCENT} !important; }
+    body, .nl-container { background-color: ${C.NAVY} !important; }
+  }
+  [data-ogsc] body, [data-ogsb] body,
+  [data-ogsc] .nl-container, [data-ogsb] .nl-container { background-color: ${C.NAVY} !important; }
+  [data-ogsc] [bgcolor="${C.NAVY}"], [data-ogsb] [bgcolor="${C.NAVY}"] { background-color: ${C.NAVY} !important; }
+  [data-ogsc] [bgcolor="${C.CREAM}"], [data-ogsb] [bgcolor="${C.CREAM}"] { background-color: ${C.CREAM} !important; }
+  [data-ogsc] [bgcolor="${C.ACCENT}"], [data-ogsb] [bgcolor="${C.ACCENT}"] { background-color: ${C.ACCENT} !important; }
+  [data-ogsc] [bgcolor="${CARD_BG}"], [data-ogsb] [bgcolor="${CARD_BG}"] { background-color: ${CARD_BG} !important; }
+  [data-ogsc] [style^="color:${C.NAVY}"], [data-ogsb] [style^="color:${C.NAVY}"],
+  [data-ogsc] [style*=";color:${C.NAVY}"], [data-ogsb] [style*=";color:${C.NAVY}"] { color: ${C.NAVY} !important; }
+  [data-ogsc] [style^="color:${C.CREAM}"], [data-ogsb] [style^="color:${C.CREAM}"],
+  [data-ogsc] [style*=";color:${C.CREAM}"], [data-ogsb] [style*=";color:${C.CREAM}"] { color: ${C.CREAM} !important; }
+  [data-ogsc] [style^="color:${C.ACCENT}"], [data-ogsb] [style^="color:${C.ACCENT}"],
+  [data-ogsc] [style*=";color:${C.ACCENT}"], [data-ogsb] [style*=";color:${C.ACCENT}"] { color: ${C.ACCENT} !important; }
+  @media (max-width: 680px){
+    .row-content { width:100% !important; max-width:100% !important; }
+    .hero-pad { padding:36px 26px !important; }
+    .hero-pad h1 { font-size:32px !important; }
+    .event-cell { display:block !important; width:100% !important; text-align:center !important; padding-left:20px !important; padding-right:20px !important; }
+    .event-cell img { margin:10px auto 0 !important; }
+    .two-col-cell { display:block !important; width:100% !important; text-align:center !important; padding:0 0 16px 0 !important; }
+    .two-col-cell img { margin:0 auto !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:${C.NAVY};-webkit-text-size-adjust:none;text-size-adjust:none;" bgcolor="${C.NAVY}">
+${nonEmpty(s.preheader) ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;font-family:sans-serif;">${esc(s.preheader)}</div>` : ''}
+<table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="${C.NAVY}" style="mso-table-lspace:0pt;mso-table-rspace:0pt;background-color:${C.NAVY};">
+<tr><td>
+${bodyContent}
+${darkModeNote}
+</td></tr>
+</table>
+${opts.preview ? PREVIEW_PLACEHOLDER_SCRIPT : ''}
+</body>
+</html>`;
+}
+
+/* ============================================================
+   PREVIEW + WIRING
+   ============================================================ */
+let previewTimer = null;
+function schedulePreviewUpdate(){
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 120);
+}
+function updatePreview(){
+  const previewHtml = buildEmailHTML(state, {preview:true});
+  const exportHtml = buildEmailHTML(state, {preview:false});
+  document.getElementById('previewFrame').srcdoc = previewHtml;
+  document.getElementById('htmlSource').textContent = exportHtml;
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+function fileSafeName(){
+  const hero = state.blocks.find(b=>b.type==='hero');
+  const raw = ((hero && hero.lines && hero.lines.find(nonEmpty)) || 'fye-email').toLowerCase().trim();
+  const slug = raw.replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'fye-email';
+  return slug + '.html';
+}
+
+document.getElementById('formRoot').addEventListener('input', (e)=>{
+  const ghField = e.target.dataset.ghField;
+  if(ghField){
+    githubConfig[ghField] = e.target.value;
+    saveGithubConfig();
+    return;
+  }
+  const path = e.target.dataset.bind;
+  if(!path) return;
+  setPath(state, path, e.target.dataset.bool ? e.target.checked : (e.target.dataset.numeric ? (parseInt(e.target.value,10) || 0) : e.target.value));
+  if(e.target.type === 'color'){
+    const swatch = e.target.parentElement.querySelector('.swatch-text');
+    if(swatch) swatch.textContent = e.target.value;
+  }
+  saveState();
+  schedulePreviewUpdate();
+  // update the badge/title text + empty-flag inline without a full form re-render (keeps focus)
+  const card = e.target.closest('.block-card');
+  if(card){
+    const idx = parseInt(card.dataset.blockIndex,10);
+    const b = state.blocks[idx];
+    const def = BLOCKS[b.type];
+    if(def){
+      const empty = def.isEmpty(b);
+      card.classList.toggle('is-empty', empty);
+      const titleEl = card.querySelector('.block-title');
+      if(titleEl) titleEl.textContent = def.title(b);
+      let flag = card.querySelector('.block-empty-flag');
+      if(empty && !flag){
+        flag = document.createElement('span');
+        flag.className = 'block-empty-flag';
+        flag.textContent = '— empty, omitted from output';
+        card.querySelector('.block-title').insertAdjacentElement('afterend', flag);
+      } else if(!empty && flag){
+        flag.remove();
+      }
+    }
+  }
+});
+
+document.getElementById('formRoot').addEventListener('change', (e)=>{
+  // selects (e.g. media type) don't always fire 'input' consistently across browsers — re-render on change so conditional fields appear
+  if(e.target.tagName === 'SELECT' && e.target.dataset.bind){
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+  }
+});
+
+document.getElementById('formRoot').addEventListener('click', (e)=>{
+  const sectionHead = e.target.closest('.section-head');
+  if(sectionHead){
+    sectionHead.closest('.section').classList.toggle('collapsed');
+    return;
+  }
+
+  const spacingBtn = e.target.closest('[data-spacing-preset]');
+  if(spacingBtn){
+    state.spacingScale = parseFloat(spacingBtn.dataset.spacingPreset);
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    return;
+  }
+
+  const alignBtn = e.target.closest('[data-align-set]');
+  if(alignBtn){
+    setPath(state, alignBtn.dataset.alignSet, alignBtn.dataset.alignVal);
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    return;
+  }
+
+  const btn = e.target.closest('[data-action]');
+  if(btn){
+    const action = btn.dataset.action;
+    const blockIdx = btn.dataset.block !== undefined ? parseInt(btn.dataset.block,10) : null;
+
+    if(action === 'blk-toggle'){
+      // don't toggle collapse if the click landed on a control button, or the drag handle, inside the header
+      if(e.target.closest('.block-controls') || e.target.closest('.drag-handle')) return;
+      state.blocks[blockIdx].collapsed = !state.blocks[blockIdx].collapsed;
+      renderForm();
+      return;
+    }
+    if(action === 'blk-up' && blockIdx > 0){
+      const arr = state.blocks;
+      [arr[blockIdx-1], arr[blockIdx]] = [arr[blockIdx], arr[blockIdx-1]];
+    } else if(action === 'blk-down' && blockIdx < state.blocks.length-1){
+      const arr = state.blocks;
+      [arr[blockIdx+1], arr[blockIdx]] = [arr[blockIdx], arr[blockIdx+1]];
+    } else if(action === 'blk-dup'){
+      const clone = JSON.parse(JSON.stringify(state.blocks[blockIdx]));
+      clone.id = uid();
+      state.blocks.splice(blockIdx+1, 0, clone);
+    } else if(action === 'blk-remove'){
+      if(state.blocks.length > 1 && !confirm('Remove this section?')) return;
+      state.blocks.splice(blockIdx,1);
+    } else if(action === 'arr-add'){
+      const field = btn.dataset.field, tpl = btn.dataset.tpl;
+      const factory = TPL[tpl];
+      state.blocks[blockIdx][field].push(factory ? factory() : '');
+    } else if(action === 'arr-remove'){
+      const field = btn.dataset.field, idx = parseInt(btn.dataset.index,10);
+      state.blocks[blockIdx][field].splice(idx,1);
+    } else {
+      return;
+    }
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    return;
+  }
+});
+
+document.getElementById('formRoot').addEventListener('click', (e)=>{
+  if(e.target.id === 'addBlockBtn'){
+    const type = document.getElementById('addBlockType').value;
+    const def = BLOCKS[type];
+    if(!def) return;
+    state.blocks.push(def.blank());
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+  }
+});
+
+/* ============================================================
+   LOCAL IMAGE EMBEDDING
+   An email can't reach into a folder on your computer the way a
+   webpage can, so a local file has to travel as part of the HTML
+   itself — as a base64 "data:" URI right in the <img src="">.
+   Modern Gmail/Apple Mail/mobile clients render these fine, but
+   classic Outlook desktop (Windows, the Word rendering engine)
+   does NOT reliably display embedded images — only genuinely
+   hosted links are guaranteed to work there. We resize/compress
+   on the way in to keep the HTML from ballooning (Gmail clips
+   messages over ~100 KB), but a free image host (imgbb.com,
+   postimages.org, Cloudinary's free tier, etc.) is still the
+   safer choice for anything going out to Outlook recipients.
+   ============================================================ */
+const MAX_EMBED_DIMENSION = 900; // px, longest side
+const EMBED_JPEG_QUALITY = 0.82;
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = ()=> reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageEl(src){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=> resolve(img);
+    img.onerror = ()=> reject(new Error('Could not decode image'));
+    img.src = src;
+  });
+}
+
+async function fileToEmbeddableDataUrl(file){
+  const rawDataUrl = await readFileAsDataUrl(file);
+  const keepPng = file.type === 'image/png' || file.type === 'image/gif' || file.type === 'image/svg+xml';
+  // SVGs and GIFs are passed through untouched (canvas re-encoding would break
+  // animation/vector scaling); everything else gets resized/recompressed.
+  if(file.type === 'image/svg+xml' || file.type === 'image/gif'){
+    return rawDataUrl;
+  }
+  try{
+    const img = await loadImageEl(rawDataUrl);
+    let { width, height } = img;
+    if(width <= MAX_EMBED_DIMENSION && height <= MAX_EMBED_DIMENSION && file.size < 250*1024){
+      return rawDataUrl; // already small enough, don't bother re-encoding
+    }
+    const scale = Math.min(1, MAX_EMBED_DIMENSION / Math.max(width, height));
+    const w = Math.max(1, Math.round(width * scale));
+    const h = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL(keepPng ? 'image/png' : 'image/jpeg', EMBED_JPEG_QUALITY);
+  }catch(e){
+    return rawDataUrl; // decoding failed for some reason — fall back to the untouched file
+  }
+}
+
+document.getElementById('formRoot').addEventListener('click', (e)=>{
+  const pickBtn = e.target.closest('[data-image-pick]');
+  if(pickBtn){
+    const input = pickBtn.parentElement.querySelector('[data-image-input]');
+    if(input) input.click();
+    return;
+  }
+  const clearBtn = e.target.closest('[data-image-clear]');
+  if(clearBtn){
+    setPath(state, clearBtn.dataset.imageClear, '');
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    return;
+  }
+  const ghPickBtn = e.target.closest('[data-github-pick]');
+  if(ghPickBtn){
+    if(!nonEmpty(githubConfig.token) || !nonEmpty(githubConfig.repo)){
+      showToast('Set up GitHub hosting first — see the "GitHub image hosting" section near the top');
+      return;
+    }
+    const input = ghPickBtn.parentElement.querySelector('[data-github-input]');
+    if(input) input.click();
+    return;
+  }
+  if(e.target.id === 'btnGithubForget'){
+    githubConfig = { token:'', repo: githubConfig.repo, branch: githubConfig.branch, folder: githubConfig.folder };
+    saveGithubConfig();
+    renderForm();
+    showToast('Token forgotten');
+    return;
+  }
+});
+
+document.getElementById('formRoot').addEventListener('change', async (e)=>{
+  const ghInput = e.target.closest('[data-github-input]');
+  if(ghInput){
+    const file = ghInput.files && ghInput.files[0];
+    ghInput.value = '';
+    if(!file) return;
+    if(!file.type || file.type.indexOf('image/') !== 0){
+      showToast('That file isn\'t an image');
+      return;
+    }
+    await uploadImageToGithub(file, ghInput.dataset.githubInput);
+    return;
+  }
+  const input = e.target.closest('[data-image-input]');
+  if(!input) return;
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const bindPath = input.dataset.imageInput;
+  if(!file.type || file.type.indexOf('image/') !== 0){
+    showToast('That file isn\'t an image');
+    input.value = '';
+    return;
+  }
+  showToast('Embedding ' + file.name + '…');
+  try{
+    const dataUrl = await fileToEmbeddableDataUrl(file);
+    setPath(state, bindPath, dataUrl);
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    showToast('Embedded ' + file.name);
+  }catch(err){
+    showToast('Could not read that image file');
+  }
+});
+
+async function uploadImageToGithub(file, bindPath){
+  if(!nonEmpty(githubConfig.token) || !nonEmpty(githubConfig.repo)){
+    showToast('Set up GitHub hosting first');
+    return;
+  }
+  const repoParts = githubConfig.repo.split('/').map(s=>s.trim()).filter(Boolean);
+  if(repoParts.length !== 2){
+    showToast('Repository should look like "username/repo-name"');
+    return;
+  }
+  const [owner, repoName] = repoParts;
+  showToast('Uploading ' + file.name + ' to GitHub…');
+  try{
+    // reuse the same resize/compress pass used for embedding, so a huge photo
+    // doesn't bloat the repo or the recipient's download either
+    const dataUrl = await fileToEmbeddableDataUrl(file);
+    const commaIdx = dataUrl.indexOf(',');
+    const mime = dataUrl.slice(5, dataUrl.indexOf(';'));
+    const base64 = dataUrl.slice(commaIdx + 1);
+    const ext = mime === 'image/png' ? 'png' : mime === 'image/gif' ? 'gif' : mime === 'image/svg+xml' ? 'svg' : 'jpg';
+    const safeBase = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-_]+/g, '-').toLowerCase() || 'image';
+    const fileName = safeBase + '-' + Date.now().toString(36) + '.' + ext;
+    const folder = (githubConfig.folder || '').replace(/^\/+|\/+$/g, '');
+    const filePath = (folder ? folder + '/' : '') + fileName;
+    const apiUrl = 'https://api.github.com/repos/' + encodeURIComponent(owner) + '/' + encodeURIComponent(repoName)
+      + '/contents/' + filePath.split('/').map(encodeURIComponent).join('/');
+
+    const res = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + githubConfig.token,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Add ' + fileName + ' via FYE Newsletter Builder',
+        content: base64,
+        branch: githubConfig.branch || 'main'
+      })
+    });
+
+    if(!res.ok){
+      let msg = 'HTTP ' + res.status;
+      try{ const body = await res.json(); if(body && body.message) msg = body.message; }catch(e){}
+      showToast('GitHub upload failed: ' + msg);
+      return;
+    }
+    const json = await res.json();
+    const rawUrl = json && json.content && json.content.download_url;
+    if(!rawUrl){
+      showToast('Upload succeeded but GitHub didn\'t return a file URL');
+      return;
+    }
+    setPath(state, bindPath, rawUrl);
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    showToast('Uploaded to GitHub ✓');
+  }catch(err){
+    showToast('GitHub upload failed — check your connection, token, and repo settings');
+  }
+}
+
+/* ============================================================
+   DRAG-AND-DROP SECTION REORDERING
+   Each block-card is only made draggable while the pointer is
+   down on its ⠿ handle (dragging the whole card at all other
+   times would fight with clicking buttons/typing in fields).
+   The ↑ / ↓ buttons still work too, for keyboard/touch users.
+   ============================================================ */
+let dragFromIndex = null;
+
+document.getElementById('formRoot').addEventListener('mousedown', (e)=>{
+  const handle = e.target.closest('.drag-handle');
+  if(!handle) return;
+  const card = handle.closest('.block-card');
+  if(card) card.draggable = true;
+});
+document.addEventListener('mouseup', ()=>{
+  // if mousedown-on-handle never turned into an actual drag, undo the draggable flag
+  if(dragFromIndex == null){
+    document.querySelectorAll('#formRoot .block-card[draggable="true"]').forEach(c=> c.draggable = false);
+  }
+});
+
+function clearDragState(){
+  document.querySelectorAll('#formRoot .block-card').forEach(card=>{
+    card.draggable = false;
+    card.classList.remove('dragging', 'drag-over-top', 'drag-over-bottom');
+  });
+  dragFromIndex = null;
+}
+
+document.getElementById('formRoot').addEventListener('dragstart', (e)=>{
+  const card = e.target.closest('.block-card');
+  if(!card || !card.draggable){ e.preventDefault(); return; }
+  dragFromIndex = parseInt(card.dataset.blockIndex, 10);
+  card.classList.add('dragging');
+  try{ e.dataTransfer.setData('text/plain', String(dragFromIndex)); }catch(err){}
+  e.dataTransfer.effectAllowed = 'move';
+});
+
+document.getElementById('formRoot').addEventListener('dragover', (e)=>{
+  if(dragFromIndex == null) return;
+  const card = e.target.closest('.block-card');
+  if(!card) return;
+  e.preventDefault(); // allow drop
+  document.querySelectorAll('#formRoot .block-card').forEach(c=>{
+    if(c !== card) c.classList.remove('drag-over-top', 'drag-over-bottom');
+  });
+  const rect = card.getBoundingClientRect();
+  const before = (e.clientY - rect.top) < rect.height / 2;
+  card.classList.toggle('drag-over-top', before);
+  card.classList.toggle('drag-over-bottom', !before);
+});
+
+document.getElementById('formRoot').addEventListener('drop', (e)=>{
+  if(dragFromIndex == null) return;
+  const card = e.target.closest('.block-card');
+  if(!card){ clearDragState(); return; }
+  e.preventDefault();
+  const toCard = parseInt(card.dataset.blockIndex, 10);
+  const rect = card.getBoundingClientRect();
+  const before = (e.clientY - rect.top) < rect.height / 2;
+  let insertAt = before ? toCard : toCard + 1;
+  const from = dragFromIndex;
+  clearDragState();
+  if(insertAt === from || insertAt === from + 1) return; // no actual move
+  const arr = state.blocks;
+  const [moved] = arr.splice(from, 1);
+  if(insertAt > from) insertAt--; // account for the removed item shifting indices
+  arr.splice(insertAt, 0, moved);
+  saveState();
+  renderForm();
+  schedulePreviewUpdate();
+});
+
+document.getElementById('formRoot').addEventListener('dragend', clearDragState);
+
+document.getElementById('btnCopy').addEventListener('click', async ()=>{
+  const html = buildEmailHTML(state);
+  try{
+    await navigator.clipboard.writeText(html);
+    showToast('HTML copied to clipboard');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = html;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('HTML copied to clipboard');
+  }
+});
+
+let downloadsCap = null;
+(async ()=>{
+  try{
+    if(window.claude && typeof window.claude.use === 'function'){
+      downloadsCap = await window.claude.use('downloads');
+    }
+  }catch(e){ downloadsCap = null; }
+})();
+
+function downloadViaBrowser(content, filename, mimeType){
+  // Plain browser file download (works when this page is opened as a normal
+  // local/served HTML file — not inside the sandboxed Artifact preview).
+  const blob = new Blob([content], { type: mimeType || 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 1000);
+}
+
+function templateFileName(){
+  const hero = state.blocks.find(b=>b.type==='hero');
+  const raw = ((hero && hero.lines && hero.lines.find(nonEmpty)) || 'fye-email').toLowerCase().trim();
+  const slug = raw.replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'fye-email';
+  return slug + '-template.json';
+}
+
+document.getElementById('btnDownload').addEventListener('click', async ()=>{
+  const html = buildEmailHTML(state);
+  const filename = fileSafeName();
+  if(downloadsCap){
+    try{
+      await downloadsCap.save({ filename, data: html });
+      showToast('Saved ' + filename);
+    }catch(e){
+      if(e && e.code === 'declined'){ /* user said no, do nothing */ }
+      else{
+        showToast('Could not save — use Copy HTML instead');
+      }
+    }
+    return;
+  }
+  try{
+    downloadViaBrowser(html, filename, 'text/html');
+    showToast('Downloaded ' + filename);
+  }catch(e){
+    try{
+      await navigator.clipboard.writeText(html);
+      showToast('Download blocked — copied HTML instead');
+    }catch(e2){
+      showToast('Use "Copy HTML" below to grab the file contents');
+    }
+  }
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  if(!confirm('Reset all fields back to the sample template? This clears your current edits.')) return;
+  state = sampleState();
+  saveState();
+  renderForm();
+  schedulePreviewUpdate();
+});
+
+document.getElementById('btnExportTemplate').addEventListener('click', async ()=>{
+  const json = JSON.stringify(state, null, 2);
+  const filename = templateFileName();
+  if(downloadsCap){
+    try{
+      await downloadsCap.save({ filename, data: json });
+      showToast('Saved ' + filename);
+      return;
+    }catch(e){
+      if(e && e.code === 'declined'){ return; }
+      // fall through to browser download / clipboard
+    }
+  }
+  try{
+    downloadViaBrowser(json, filename, 'application/json');
+    showToast('Downloaded ' + filename);
+  }catch(e){
+    try{
+      await navigator.clipboard.writeText(json);
+      showToast('Download blocked — copied template JSON instead');
+    }catch(e2){
+      showToast('Could not export the template');
+    }
+  }
+});
+
+document.getElementById('btnImportTemplate').addEventListener('click', ()=>{
+  document.getElementById('fileImportTemplate').click();
+});
+
+document.getElementById('fileImportTemplate').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  e.target.value = ''; // allow re-selecting the same file later
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    if(!parsed || !Array.isArray(parsed.blocks)){
+      showToast('That file doesn\'t look like a template export');
+      return;
+    }
+    if(!confirm('Load "' + file.name + '"? This replaces everything currently in the editor.')) return;
+    if(parsed.showDarkModeNote == null) parsed.showDarkModeNote = true;
+    if(parsed.spacingScale == null) parsed.spacingScale = 1;
+    state = parsed;
+    saveState();
+    renderForm();
+    schedulePreviewUpdate();
+    showToast('Loaded ' + file.name);
+  }catch(err){
+    showToast('Could not read that file — is it a valid template .json?');
+  }
+});
+
+document.getElementById('vpDesktop').addEventListener('click', ()=>{
+  document.getElementById('vpDesktop').classList.add('active');
+  document.getElementById('vpMobile').classList.remove('active');
+  document.getElementById('frameWrap').classList.remove('mobile');
+});
+document.getElementById('vpMobile').addEventListener('click', ()=>{
+  document.getElementById('vpMobile').classList.add('active');
+  document.getElementById('vpDesktop').classList.remove('active');
+  document.getElementById('frameWrap').classList.add('mobile');
+});
+
+document.getElementById('dismissNote').addEventListener('click', ()=>{
+  document.getElementById('previewNote').classList.add('hidden');
+  try{ localStorage.setItem('fye-builder-note-dismissed','1'); }catch(e){}
+});
+
+window.addEventListener('message', (e)=>{
+  const data = e.data;
+  if(data && data.source === 'fye-builder-preview' && data.imagesBlocked){
+    let dismissed = false;
+    try{ dismissed = localStorage.getItem('fye-builder-note-dismissed') === '1'; }catch(err){}
+    if(!dismissed) document.getElementById('previewNote').classList.remove('hidden');
+  }
+});
+
+renderForm();
+updatePreview();
+</script>
