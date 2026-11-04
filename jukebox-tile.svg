@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="660" viewBox="0 0 1320 660" role="img" aria-label="Jukebox">
+<defs><pattern id="dots" width="40" height="40" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="2.4" fill="#e6d8c3"/></pattern></defs>
+<rect width="1320" height="660" fill="#FFF8EE"/>
+<rect width="1320" height="660" fill="url(#dots)"/>
+<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V7h4V3z" transform="rotate(-10 120.0 120.0) translate(40,40) scale(6.6667)" fill="#8fd4a8" stroke="#3d2b4f" stroke-width="2.10" stroke-linejoin="round" paint-order="stroke fill"/>
+<path d="M212.92 17.71a7.89 7.89 0 0 0-6.86-1.46l-128 32A8 8 0 0 0 72 56v110.1A36 36 0 1 0 88 196v-93.75l112-28v59.85a36 36 0 1 0 16 29.9V24a8 8 0 0 0-3.08-6.29" transform="rotate(8 1120.0 100.0) translate(1040,20) scale(0.6250)" fill="#ffc978" stroke="#3d2b4f" stroke-width="22.40" stroke-linejoin="round" paint-order="stroke fill"/>
+<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V7h4V3z" transform="rotate(8 145.0 565.0) translate(70,490) scale(6.2500)" fill="#ff9a8f" stroke="#3d2b4f" stroke-width="2.24" stroke-linejoin="round" paint-order="stroke fill"/>
+<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55c-2.21 0-4 1.79-4 4s1.79 4 4 4s4-1.79 4-4V7h4V3z" transform="rotate(-8 1205.0 565.0) translate(1130,490) scale(6.2500)" fill="#D9CCFF" stroke="#3d2b4f" stroke-width="2.24" stroke-linejoin="round" paint-order="stroke fill"/>
+<g stroke="#3d2b4f" stroke-width="6" stroke-linejoin="round">
+  <circle cx="300" cy="72" r="36" fill="#FFEFA8"/><circle cx="300" cy="72" r="14" fill="#FFF8EE"/>
+  <polygon points="840.0,38.0 852.9,66.2 883.7,69.8 860.9,90.8 867.0,121.2 840.0,106.0 813.0,121.2 819.1,90.8 796.3,69.8 827.1,66.2" fill="#ffc978"/>
+  <polygon points="640,520 690,604 590,604" fill="#8fd4a8"/>
+  <rect x="842" y="528" width="76" height="76" rx="18" fill="#D9CCFF" transform="rotate(14 880 566)"/>
+  <path d="M430 560c-24-34 8-62 40-44s34 56 2 66-32-4-42-22z" fill="#FFD3B6"/>
+  <circle cx="560" cy="60" r="22" fill="#ff9a8f"/>
+  <circle cx="1230" cy="330" r="26" fill="#8fd4a8"/>
+  <circle cx="60" cy="380" r="24" fill="#FFEFA8"/>
+</g>
+<rect x="257" y="204" width="830" height="262" rx="44" fill="#3d2b4f"/>
+<rect x="245" y="192" width="830" height="262" rx="44" fill="#ffffff" stroke="#3d2b4f" stroke-width="7"/>
+<path d="M212.92 17.71a7.89 7.89 0 0 0-6.86-1.46l-128 32A8 8 0 0 0 72 56v110.1A36 36 0 1 0 88 196v-93.75l112-28v59.85a36 36 0 1 0 16 29.9V24a8 8 0 0 0-3.08-6.29" transform="rotate(0 400.0 333.0) translate(305,238) scale(0.7422)" fill="#D9CCFF" stroke="#3d2b4f" stroke-width="18.86" stroke-linejoin="round" paint-order="stroke fill"/>
+<text x="560" y="334" font-family="Fredoka, 'Arial Rounded MT Bold', sans-serif" font-weight="600" font-size="120" fill="#3d2b4f">Jukebox</text>
+<rect x="565" y="364" width="300" height="48" rx="24" fill="#FFEFA8" stroke="#3d2b4f" stroke-width="6"/>
+<text x="715" y="398" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="600" font-size="25" letter-spacing="3" fill="#3d2b4f">MUSIC PLAYER</text>
+</svg>
